@@ -6,6 +6,10 @@ tarif heures creuses.
 
 ## Principe
 
+<p align="center">
+  <img src="docs/principe.svg" alt="Schéma du principe de fonctionnement" width="100%">
+</p>
+
 À chaque cycle (10 s par défaut) :
 
 ```
