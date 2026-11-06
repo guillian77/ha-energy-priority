@@ -1,0 +1,121 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Energy Priority — capteurs et réglages",
+        "description": "Sélectionnez les capteurs d'énergie et les réglages du contrôleur.",
+        "data": {
+          "solar_power": "Puissance solaire (W)",
+          "load_power": "Consommation globale (W)",
+          "battery_power": "Puissance batterie (W)",
+          "battery_soc": "Pourcentage batterie (%)",
+          "tariff_entity": "Entité tarifaire (HC/HP)",
+          "hc_values": "Valeurs heures creuses (préfixes séparés par des virgules)",
+          "battery_charge_positive": "Puissance batterie positive en charge",
+          "allow_battery_discharge": "Autoriser la décharge batterie",
+          "battery_discharge_cap": "Décharge batterie maximale (W)",
+          "battery_soc_min": "Batterie : seuil minimal (%)",
+          "margin": "Marge de sécurité (W)",
+          "hysteresis": "Hystérésis (W)",
+          "grid_max": "Import réseau maximal (W, 0 = illimité)",
+          "scan_interval": "Intervalle de calcul (s)",
+          "settle": "Délai de stabilisation (s)",
+          "hc_boost": "Forçage en heures creuses si quota non atteint",
+          "fail_safe_all_off": "Tout couper si les capteurs sont indisponibles"
+        }
+      },
+      "device": {
+        "title": "Ajouter un appareil",
+        "description": "Appareil à piloter (facultatif, vous pourrez en ajouter plus tard).",
+        "data": {
+          "entity_id": "Entité à piloter",
+          "name": "Nom",
+          "power": "Puissance nominale (W)",
+          "priority": "Priorité (1 = le plus prioritaire)",
+          "min_on": "Durée minimale de marche (s)",
+          "min_off": "Durée minimale d'arrêt (s)",
+          "quota": "Quota journalier (h, 0 = désactivé)",
+          "hc_fallback": "Forçage en heures creuses si quota non atteint",
+          "add_another": "Ajouter un autre appareil"
+        }
+      }
+    },
+    "abort": {
+      "already_configured": "Energy Priority est déjà configuré."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Energy Priority",
+        "menu_options": {
+          "settings": "Réglages globaux et capteurs",
+          "add_device": "Ajouter un appareil",
+          "edit_device": "Modifier un appareil",
+          "remove_device": "Supprimer un appareil"
+        }
+      },
+      "settings": {
+        "title": "Réglages globaux",
+        "description": "Capteurs et paramètres du contrôleur.",
+        "data": {
+          "solar_power": "Puissance solaire (W)",
+          "load_power": "Consommation globale (W)",
+          "battery_power": "Puissance batterie (W)",
+          "battery_soc": "Pourcentage batterie (%)",
+          "tariff_entity": "Entité tarifaire (HC/HP)",
+          "hc_values": "Valeurs heures creuses (préfixes séparés par des virgules)",
+          "battery_charge_positive": "Puissance batterie positive en charge",
+          "allow_battery_discharge": "Autoriser la décharge batterie",
+          "battery_discharge_cap": "Décharge batterie maximale (W)",
+          "battery_soc_min": "Batterie : seuil minimal (%)",
+          "margin": "Marge de sécurité (W)",
+          "hysteresis": "Hystérésis (W)",
+          "grid_max": "Import réseau maximal (W, 0 = illimité)",
+          "scan_interval": "Intervalle de calcul (s)",
+          "settle": "Délai de stabilisation (s)",
+          "hc_boost": "Forçage en heures creuses si quota non atteint",
+          "fail_safe_all_off": "Tout couper si les capteurs sont indisponibles"
+        }
+      },
+      "add_device": {
+        "title": "Ajouter un appareil",
+        "data": {
+          "entity_id": "Entité à piloter",
+          "name": "Nom",
+          "power": "Puissance nominale (W)",
+          "priority": "Priorité (1 = le plus prioritaire)",
+          "min_on": "Durée minimale de marche (s)",
+          "min_off": "Durée minimale d'arrêt (s)",
+          "quota": "Quota journalier (h, 0 = désactivé)",
+          "hc_fallback": "Forçage en heures creuses si quota non atteint",
+          "add_another": "Ajouter un autre appareil"
+        }
+      },
+      "edit_device": {
+        "title": "Modifier un appareil",
+        "description": "Appareil : {name}",
+        "data": {
+          "key": "Appareil",
+          "entity_id": "Entité à piloter",
+          "name": "Nom",
+          "power": "Puissance nominale (W)",
+          "priority": "Priorité (1 = le plus prioritaire)",
+          "min_on": "Durée minimale de marche (s)",
+          "min_off": "Durée minimale d'arrêt (s)",
+          "quota": "Quota journalier (h, 0 = désactivé)",
+          "hc_fallback": "Forçage en heures creuses si quota non atteint"
+        }
+      },
+      "remove_device": {
+        "title": "Supprimer un appareil",
+        "data": {
+          "key": "Appareil"
+        }
+      }
+    },
+    "abort": {
+      "no_devices": "Aucun appareil configuré."
+    }
+  }
+}

@@ -1,0 +1,82 @@
+"""Vérifie les parcours de configuration (installation et options)."""
+
+import pytest
+from homeassistant.core import HomeAssistant
+from homeassistant.data_entry_flow import FlowResultType
+from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+from custom_components.energy_priority.const import CONF_DEVICES, DOMAIN
+
+USER_INPUT = {
+    "solar_power": "sensor.solar",
+    "load_power": "sensor.load",
+    "battery_power": "sensor.battery",
+    "battery_soc": "sensor.soc",
+    "tariff_entity": "sensor.tarif",
+    "hc_values": "HC",
+    "battery_charge_positive": True,
+    "allow_battery_discharge": True,
+    "battery_discharge_cap": 5000,
+    "battery_soc_min": 20,
+    "margin": 100,
+    "hysteresis": 150,
+    "grid_max": 0,
+    "scan_interval": 10,
+    "settle": 30,
+    "hc_boost": True,
+    "fail_safe_all_off": True,
+}
+
+DEVICE_INPUT = {
+    "entity_id": "switch.ballon",
+    "name": "Ballon",
+    "power": 2000,
+    "priority": 2,
+    "min_on": 1800,
+    "min_off": 60,
+    "quota": 2,
+    "hc_fallback": True,
+    "add_another": False,
+}
+
+
+async def test_user_flow_creates_entry(hass: HomeAssistant) -> None:
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "user"
+
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], USER_INPUT)
+    assert result["type"] == FlowResultType.FORM
+    assert result["step_id"] == "device"
+
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], DEVICE_INPUT)
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert result["options"][CONF_DEVICES]["ballon"]["power"] == 2000.0
+
+
+async def test_user_flow_without_device(hass: HomeAssistant) -> None:
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], USER_INPUT)
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"add_another": False}
+    )
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+
+
+async def test_options_flow_add_device(hass: HomeAssistant) -> None:
+    entry = MockConfigEntry(domain=DOMAIN, data=USER_INPUT, options={CONF_DEVICES: {}})
+    entry.add_to_hass(hass)
+    hass.states.async_set("sensor.solar", "1000")
+    hass.states.async_set("sensor.load", "0")
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    assert result["type"] == FlowResultType.MENU
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "add_device"}
+    )
+    assert result["type"] == FlowResultType.FORM
+    result = await hass.config_entries.options.async_configure(result["flow_id"], DEVICE_INPUT)
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert "ballon" in entry.options[CONF_DEVICES]
