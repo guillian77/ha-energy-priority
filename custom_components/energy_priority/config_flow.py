@@ -18,6 +18,7 @@ from .const import (
     CONF_BATTERY_SIGN,
     CONF_BATTERY_SOC,
     CONF_BATTERY_SOC_MIN,
+    CONF_BATTERY_USE_CAP,
     CONF_DEVICES,
     CONF_ENTITY,
     CONF_FAIL_SAFE,
@@ -87,6 +88,7 @@ def _settings_schema(defaults: dict[str, Any]) -> vol.Schema:
             vol.Optional(CONF_HC_VALUES, default=defaults.get(CONF_HC_VALUES, DEFAULT_HC_VALUES)): str,
             vol.Optional(CONF_BATTERY_SIGN, default=defaults.get(CONF_BATTERY_SIGN, True)): bool,
             vol.Optional(CONF_ALLOW_DISCHARGE, default=defaults.get(CONF_ALLOW_DISCHARGE, True)): bool,
+            vol.Optional(CONF_BATTERY_USE_CAP, default=defaults.get(CONF_BATTERY_USE_CAP, False)): bool,
             vol.Optional(CONF_BATTERY_CAP, default=defaults.get(CONF_BATTERY_CAP, DEFAULT_BATTERY_CAP)): POWER,
             vol.Optional(CONF_BATTERY_SOC_MIN, default=defaults.get(CONF_BATTERY_SOC_MIN, DEFAULT_BATTERY_SOC_MIN)): selector.NumberSelector(
                 selector.NumberSelectorConfig(min=0, max=100, step=1, unit_of_measurement="%", mode=selector.NumberSelectorMode.SLIDER)

@@ -70,6 +70,22 @@ class BudgetTests(unittest.TestCase):
         inputs = Inputs(solar_w=0, load_w=0, battery_w=-2000, battery_soc=25)
         self.assertEqual(compute_budget(inputs, settings, 0).battery_discharge_w, 0)
 
+    def test_use_cap_allows_max_while_charging(self):
+        # batterie en charge mais capable de fournir 1200 W a la demande
+        settings = Settings(margin_w=0, battery_use_cap=True, battery_discharge_cap_w=1200)
+        inputs = Inputs(solar_w=0, load_w=0, battery_w=949, battery_soc=34)
+        self.assertEqual(compute_budget(inputs, settings, 0).battery_discharge_w, 1200)
+
+    def test_use_cap_respects_soc_floor(self):
+        settings = Settings(margin_w=0, battery_use_cap=True, battery_soc_min=20)
+        inputs = Inputs(solar_w=0, load_w=0, battery_w=-500, battery_soc=15)
+        self.assertEqual(compute_budget(inputs, settings, 0).battery_discharge_w, 0)
+
+    def test_use_cap_off_by_default(self):
+        settings = Settings(margin_w=0, battery_discharge_cap_w=1200)
+        inputs = Inputs(solar_w=0, load_w=0, battery_w=949, battery_soc=34)
+        self.assertEqual(compute_budget(inputs, settings, 0).battery_discharge_w, 0)
+
     def test_discharge_cap(self):
         settings = Settings(margin_w=0, battery_discharge_cap_w=1500)
         inputs = Inputs(solar_w=0, load_w=0, battery_w=-4000, battery_soc=80)

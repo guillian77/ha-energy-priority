@@ -21,7 +21,8 @@
           "scan_interval": "Intervalle de calcul (s)",
           "settle": "Délai de stabilisation (s)",
           "hc_boost": "Forçage en heures creuses si quota non atteint",
-          "fail_safe_all_off": "Tout couper si les capteurs sont indisponibles"
+          "fail_safe_all_off": "Tout couper si les capteurs sont indisponibles",
+          "battery_use_cap": "La batterie peut fournir sa puissance maximale à la demande (même en charge)"
         }
       },
       "device": {
@@ -75,7 +76,8 @@
           "scan_interval": "Intervalle de calcul (s)",
           "settle": "Délai de stabilisation (s)",
           "hc_boost": "Forçage en heures creuses si quota non atteint",
-          "fail_safe_all_off": "Tout couper si les capteurs sont indisponibles"
+          "fail_safe_all_off": "Tout couper si les capteurs sont indisponibles",
+          "battery_use_cap": "La batterie peut fournir sa puissance maximale à la demande (même en charge)"
         }
       },
       "add_device": {

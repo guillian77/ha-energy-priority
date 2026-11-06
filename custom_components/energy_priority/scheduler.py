@@ -60,6 +60,7 @@ class Settings:
     battery_charge_positive: bool = True
     battery_discharge_cap_w: float = 5000.0
     allow_battery_discharge: bool = True
+    battery_use_cap: bool = False
     battery_soc_min: float = 20.0
     margin_w: float = 100.0
     hysteresis_w: float = 150.0
@@ -119,6 +120,9 @@ def battery_discharge_w(inputs: Inputs, settings: Settings) -> float:
         return 0.0
     if inputs.battery_soc is None or inputs.battery_soc < settings.battery_soc_min:
         return 0.0
+    if settings.battery_use_cap:
+        # La batterie peut fournir son maximum à la demande, même en charge.
+        return max(0.0, settings.battery_discharge_cap_w)
     if inputs.battery_w is None:
         return 0.0
     discharge = (

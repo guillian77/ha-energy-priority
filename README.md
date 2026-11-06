@@ -91,4 +91,8 @@ Par appareil :
 - Si la puissance solaire ou la consommation globale devient indisponible, le
   comportement par défaut est de tout couper (`fail_safe_all_off`). Désactivable.
 - La décharge batterie n'est jamais autorisée sous le seuil de SOC configuré.
+- Par défaut, seule la décharge réellement mesurée entre dans le budget. L'option
+  « la batterie peut fournir sa puissance maximale à la demande » utilise à la place
+  le plafond de décharge configuré (utile quand la batterie recharge mais peut
+  délivrer un appoint immédiat).
 - Aucune action n'est envoyée à un appareil dont l'entité est `unavailable`.
