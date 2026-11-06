@@ -66,6 +66,7 @@ class Settings:
     hysteresis_w: float = 150.0
     grid_max_w: float | None = None
     fail_safe_all_off: bool = True
+    hc_ignore_min_times: bool = True
 
 
 @dataclass
@@ -184,16 +185,16 @@ def build_plan(
 ) -> Plan:
     """Construit le plan d'allumage/extinction.
 
-    Ordre de service : appareils en déficit de quota pendant les heures
-    creuses d'abord (si activé), puis priorité croissante, puis temps de
-    marche le plus faible sur 24 h (rotation équitable).
+    En heures creuses, un appareil en retard de quota est servi en continu
+    (sans rotation ni alternance) jusqu'à ce que son quota soit atteint ; les
+    durées minimales de marche et d'arrêt sont alors ignorées par défaut, afin
+    d'éviter les cycles marche/arrêt de quelques minutes.
     """
     usable = [(c, s) for c, s in devices if s.available]
     on_power = sum(c.power_w for c, s in usable if s.phase == DevicePhase.ON)
     budget = compute_budget(inputs, settings, on_power)
     plan = Plan(budget=budget)
 
-    # Mode dégradé : on ne touche à rien, sauf politique "tout couper".
     if not budget.valid:
         for config, snapshot in usable:
             if settings.fail_safe_all_off and snapshot.phase == DevicePhase.ON:
@@ -206,32 +207,52 @@ def build_plan(
                 )
         return plan
 
+    deficits = {config.key: _deficit_s(config, snapshot) for config, snapshot in usable}
+    boosting: set[str] = set()
+    if hc_boost_enabled and inputs.hc_active:
+        for config, _snapshot in usable:
+            if config.hc_fallback and deficits[config.key] > 0:
+                boosting.add(config.key)
+
+    ignore_min = settings.hc_ignore_min_times
+
     # 1. Appareils allumés : on garde les plus critiques tant que ça rentre.
     on_devices = [(c, s) for c, s in usable if s.phase == DevicePhase.ON]
     on_devices.sort(key=lambda item: (item[0].priority, item[1].runtime_24h_s))
     used = 0.0
     kept: set[str] = set()
     for config, snapshot in on_devices:
-        protected = snapshot.on_duration_s < config.min_on_s
-        if protected:
+        deficit = deficits[config.key]
+        if config.key in boosting:
+            kept.add(config.key)
+            used += config.power_w
+            plan.decisions[config.key] = Decision(
+                config.key,
+                True,
+                f"forçage heures creuses en cours, quota restant {deficit / 3600:.1f} h",
+                deficit,
+            )
+        elif snapshot.on_duration_s < config.min_on_s:
             kept.add(config.key)
             used += config.power_w
             plan.decisions[config.key] = Decision(
                 config.key,
                 True,
                 f"temps minimum de marche non atteint ({int(snapshot.on_duration_s)}s)",
+                deficit,
             )
         elif used + config.power_w <= budget.available_w + settings.hysteresis_w:
             kept.add(config.key)
             used += config.power_w
             plan.decisions[config.key] = Decision(
-                config.key, True, "puissance disponible suffisante"
+                config.key, True, "puissance disponible suffisante", deficit
             )
         else:
             plan.decisions[config.key] = Decision(
                 config.key,
                 False,
                 f"puissance insuffisante ({budget.available_w:.0f} W disponibles)",
+                deficit,
             )
 
     # 2. Appareils éteints : candidats, triés par urgence de service.
@@ -239,19 +260,17 @@ def build_plan(
     boosts: list[tuple[DeviceConfig, DeviceSnapshot, float]] = []
     normal: list[tuple[DeviceConfig, DeviceSnapshot]] = []
     for config, snapshot in off_devices:
-        deficit = _deficit_s(config, snapshot)
-        if (
-            hc_boost_enabled
-            and inputs.hc_active
-            and config.hc_fallback
-            and deficit > 0
-        ):
-            boosts.append((config, snapshot, deficit))
+        if config.key in boosting:
+            boosts.append((config, snapshot, deficits[config.key]))
         else:
             normal.append((config, snapshot))
 
     boosts.sort(key=lambda item: item[2], reverse=True)
-    normal.sort(key=lambda item: (item[0].priority, item[1].runtime_24h_s))
+    if inputs.hc_active:
+        # Pas de rotation en heures creuses : on solde les quotas par urgence.
+        normal.sort(key=lambda item: (item[0].priority, -deficits[item[0].key], item[1].runtime_24h_s))
+    else:
+        normal.sort(key=lambda item: (item[0].priority, item[1].runtime_24h_s))
 
     def grid_ok(extra_w: float) -> bool:
         if settings.grid_max_w is None:
@@ -263,7 +282,7 @@ def build_plan(
     for config, snapshot, deficit in boosts:
         if snapshot.override == Override.FORCE_OFF:
             continue
-        if snapshot.off_duration_s < config.min_off_s:
+        if snapshot.off_duration_s < config.min_off_s and not ignore_min:
             plan.decisions[config.key] = Decision(
                 config.key,
                 False,
@@ -290,7 +309,7 @@ def build_plan(
 
     # 2b. Allocation classique dans la limite du budget.
     for config, snapshot in normal:
-        deficit = _deficit_s(config, snapshot)
+        deficit = deficits[config.key]
         if snapshot.off_duration_s < config.min_off_s:
             plan.decisions[config.key] = Decision(
                 config.key,

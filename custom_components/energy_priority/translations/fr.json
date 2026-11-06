@@ -22,7 +22,8 @@
           "settle": "Délai de stabilisation (s)",
           "hc_boost": "Forçage en heures creuses si quota non atteint",
           "fail_safe_all_off": "Tout couper si les capteurs sont indisponibles",
-          "battery_use_cap": "La batterie peut fournir sa puissance maximale à la demande (même en charge)"
+          "battery_use_cap": "La batterie peut fournir sa puissance maximale à la demande (même en charge)",
+          "hc_ignore_min_times": "Ignorer les durées minimales de marche/arrêt pendant le forçage en heures creuses"
         }
       },
       "device": {
@@ -77,7 +78,8 @@
           "settle": "Délai de stabilisation (s)",
           "hc_boost": "Forçage en heures creuses si quota non atteint",
           "fail_safe_all_off": "Tout couper si les capteurs sont indisponibles",
-          "battery_use_cap": "La batterie peut fournir sa puissance maximale à la demande (même en charge)"
+          "battery_use_cap": "La batterie peut fournir sa puissance maximale à la demande (même en charge)",
+          "hc_ignore_min_times": "Ignorer les durées minimales de marche/arrêt pendant le forçage en heures creuses"
         }
       },
       "add_device": {

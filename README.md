@@ -22,6 +22,11 @@ Les appareils sont ensuite servis dans cet ordre :
 3. **Temps de marche le plus faible sur 24 h glissantes** → rotation équitable à
    l'intérieur d'un même niveau de priorité.
 
+En heures creuses, il n'y a **pas de rotation** : les appareils en retard de quota sont
+servis en continu, par ordre d'urgence, et les durées minimales de marche/arrêt sont
+ignorées pour eux (option `Ignorer les durées minimales...`), afin d'éviter des cycles
+de 5 minutes qui ne chauffent rien.
+
 Un appareil est coupé si le budget ne couvre plus son cumul, avec hystérésis pour
 éviter le clignotement. Les durées minimales de marche et d'arrêt sont respectées.
 

@@ -34,6 +34,7 @@ from .const import (
     CONF_GRID_MAX,
     CONF_HC_BOOST,
     CONF_HC_FALLBACK,
+    CONF_HC_IGNORE_MIN,
     CONF_HC_VALUES,
     CONF_HYSTERESIS,
     CONF_INTERVAL,
@@ -165,6 +166,7 @@ class EnergyPriorityCoordinator(DataUpdateCoordinator[Plan]):
             hysteresis_w=float(self._cfg(CONF_HYSTERESIS, DEFAULT_HYSTERESIS)),
             grid_max_w=float(grid_max) if grid_max else None,
             fail_safe_all_off=bool(self._cfg(CONF_FAIL_SAFE, True)),
+            hc_ignore_min_times=bool(self._cfg(CONF_HC_IGNORE_MIN, True)),
         )
 
     def _load_devices(self) -> None:

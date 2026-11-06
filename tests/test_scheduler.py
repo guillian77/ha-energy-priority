@@ -185,6 +185,46 @@ class QuotaTests(unittest.TestCase):
         self.assertIn("limite réseau", plan.decisions["ballon"].reason)
 
 
+class HcContinuousTests(unittest.TestCase):
+    def test_boosting_device_stays_on_without_surplus(self):
+        # nuit : 0 W solaire, l'appareil tourne deja, quota non atteint
+        devices = [
+            (dev("ballon", 2200, priority=2, quota=2.0, min_on=300),
+             snap(DevicePhase.ON, on_s=1200, runtime=0.2 * 3600)),
+        ]
+        settings = Settings(margin_w=100, hysteresis_w=150)
+        inputs = Inputs(solar_w=0, load_w=2500, battery_w=0, battery_soc=80, hc_active=True)
+        plan = build_plan(devices, inputs, settings)
+        self.assertTrue(plan.decisions["ballon"].turn_on)
+        self.assertIn("heures creuses", plan.decisions["ballon"].reason)
+
+    def test_boost_ignores_min_off_in_hc(self):
+        devices = [
+            (dev("ballon", 2200, priority=2, quota=2.0, min_off=600), snap(off_s=30, runtime=0)),
+        ]
+        settings = Settings(margin_w=100)
+        inputs = Inputs(solar_w=0, load_w=500, hc_active=True)
+        plan = build_plan(devices, inputs, settings)
+        self.assertTrue(plan.decisions["ballon"].turn_on)
+
+    def test_boost_respects_min_off_when_option_disabled(self):
+        devices = [
+            (dev("ballon", 2200, priority=2, quota=2.0, min_off=600), snap(off_s=30, runtime=0)),
+        ]
+        settings = Settings(margin_w=100, hc_ignore_min_times=False)
+        inputs = Inputs(solar_w=0, load_w=500, hc_active=True)
+        plan = build_plan(devices, inputs, settings)
+        self.assertFalse(plan.decisions["ballon"].turn_on)
+
+    def test_non_boosted_device_keeps_min_on_protection_in_hc(self):
+        # appareil lance sur du surplus, min_on pas encore ecoule, pas de quota
+        devices = [(dev("clim", 1200, priority=1, min_on=180), snap(DevicePhase.ON, on_s=60))]
+        settings = Settings(margin_w=0, hysteresis_w=0)
+        inputs = Inputs(solar_w=0, load_w=1500, hc_active=True)
+        plan = build_plan(devices, inputs, settings)
+        self.assertTrue(plan.decisions["clim"].turn_on)
+
+
 class OverrideTests(unittest.TestCase):
     def test_force_on_ignores_budget(self):
         devices = [(dev("clim", 2000, priority=1), snap(override=Override.FORCE_ON))]

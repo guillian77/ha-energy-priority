@@ -5,7 +5,7 @@ from __future__ import annotations
 from homeassistant.const import Platform
 
 DOMAIN = "energy_priority"
-VERSION = "1.2.0"
+VERSION = "1.3.0"
 
 PLATFORMS: list[Platform] = [
     Platform.SWITCH,
@@ -32,6 +32,7 @@ CONF_GRID_MAX = "grid_max"
 CONF_FAIL_SAFE = "fail_safe_all_off"
 CONF_INTERVAL = "scan_interval"
 CONF_HC_BOOST = "hc_boost"
+CONF_HC_IGNORE_MIN = "hc_ignore_min_times"
 CONF_SETTLE = "settle"
 CONF_DEVICES = "devices"
 

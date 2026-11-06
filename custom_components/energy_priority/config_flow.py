@@ -25,6 +25,7 @@ from .const import (
     CONF_GRID_MAX,
     CONF_HC_BOOST,
     CONF_HC_FALLBACK,
+    CONF_HC_IGNORE_MIN,
     CONF_HC_VALUES,
     CONF_HYSTERESIS,
     CONF_INTERVAL,
@@ -101,6 +102,7 @@ def _settings_schema(defaults: dict[str, Any]) -> vol.Schema:
             ),
             vol.Optional(CONF_SETTLE, default=defaults.get(CONF_SETTLE, DEFAULT_SETTLE)): SECONDS,
             vol.Optional(CONF_HC_BOOST, default=defaults.get(CONF_HC_BOOST, True)): bool,
+            vol.Optional(CONF_HC_IGNORE_MIN, default=defaults.get(CONF_HC_IGNORE_MIN, True)): bool,
             vol.Optional(CONF_FAIL_SAFE, default=defaults.get(CONF_FAIL_SAFE, True)): bool,
         }
     )
