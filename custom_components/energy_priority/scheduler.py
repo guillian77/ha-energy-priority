@@ -149,7 +149,15 @@ def compute_budget(
     base_load = max(0.0, inputs.load_w - on_power_w)
     discharge = battery_discharge_w(inputs, settings)
     available = inputs.solar_w + discharge - base_load - settings.margin_w
-    grid_import = base_load - inputs.solar_w - discharge
+
+    # Import réseau réel : mesuré, pas estimé à partir de la décharge autorisée.
+    if inputs.battery_w is None:
+        signed_charge = 0.0
+    else:
+        signed_charge = (
+            inputs.battery_w if settings.battery_charge_positive else -inputs.battery_w
+        )
+    grid_import = inputs.load_w - inputs.solar_w + signed_charge
     return Budget(
         valid=True,
         base_load_w=round(base_load, 1),

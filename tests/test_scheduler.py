@@ -65,6 +65,14 @@ class BudgetTests(unittest.TestCase):
         discharging = Inputs(solar_w=0, load_w=0, battery_w=800, battery_soc=50)
         self.assertEqual(compute_budget(discharging, settings, 0).battery_discharge_w, 800)
 
+    def test_grid_import_uses_measured_battery(self):
+        # 1148 W solaires, 1519 W de consommation, batterie qui decharge 406 W
+        settings = Settings(margin_w=100, battery_use_cap=True, battery_discharge_cap_w=1200)
+        inputs = Inputs(solar_w=1148, load_w=1519, battery_w=-406, battery_soc=79)
+        budget = compute_budget(inputs, settings, on_power_w=1194)
+        self.assertEqual(budget.battery_discharge_w, 1200)  # budget inchange
+        self.assertEqual(budget.grid_import_w, -35)         # mais l'import reste reel
+
     def test_battery_soc_floor_blocks_discharge(self):
         settings = Settings(margin_w=0, battery_soc_min=30)
         inputs = Inputs(solar_w=0, load_w=0, battery_w=-2000, battery_soc=25)
