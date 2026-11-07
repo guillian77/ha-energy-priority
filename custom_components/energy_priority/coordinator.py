@@ -31,6 +31,7 @@ from .const import (
     CONF_DEVICES,
     CONF_ENTITY,
     CONF_FAIL_SAFE,
+    CONF_GRID,
     CONF_GRID_MAX,
     CONF_HC_BOOST,
     CONF_HC_FALLBACK,
@@ -50,6 +51,7 @@ from .const import (
     CONF_SETTLE,
     CONF_SOLAR,
     CONF_TARIFF,
+    CONF_USE_GRID,
     DEFAULT_BATTERY_CAP,
     DEFAULT_BATTERY_SOC_MIN,
     DEFAULT_DEVICE_PRIORITY,
@@ -168,6 +170,7 @@ class EnergyPriorityCoordinator(DataUpdateCoordinator[Plan]):
             grid_max_w=float(grid_max) if grid_max else None,
             fail_safe_all_off=bool(self._cfg(CONF_FAIL_SAFE, True)),
             hc_ignore_min_times=bool(self._cfg(CONF_HC_IGNORE_MIN, True)),
+            use_measured_grid=bool(self._cfg(CONF_USE_GRID, False)),
         )
 
     def _load_devices(self) -> None:
@@ -250,6 +253,7 @@ class EnergyPriorityCoordinator(DataUpdateCoordinator[Plan]):
             load_w=self._state_float(self._cfg(CONF_LOAD, None)),
             battery_w=self._state_float(self._cfg(CONF_BATTERY_POWER, None)),
             battery_soc=self._state_float(self._cfg(CONF_BATTERY_SOC, None)),
+            grid_w=self._state_float(self._cfg(CONF_GRID, None)),
             hc_active=self.hc_active(),
         )
 

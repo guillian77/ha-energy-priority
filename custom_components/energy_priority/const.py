@@ -5,7 +5,7 @@ from __future__ import annotations
 from homeassistant.const import Platform
 
 DOMAIN = "energy_priority"
-VERSION = "1.5.0"
+VERSION = "1.6.0"
 
 PLATFORMS: list[Platform] = [
     Platform.SWITCH,
@@ -20,6 +20,8 @@ CONF_LOAD = "load_power"
 CONF_BATTERY_POWER = "battery_power"
 CONF_BATTERY_SOC = "battery_soc"
 CONF_TARIFF = "tariff_entity"
+CONF_GRID = "grid_power"
+CONF_USE_GRID = "use_measured_grid"
 CONF_HC_VALUES = "hc_values"
 CONF_BATTERY_SIGN = "battery_charge_positive"
 CONF_BATTERY_CAP = "battery_discharge_cap"

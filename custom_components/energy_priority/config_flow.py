@@ -22,6 +22,7 @@ from .const import (
     CONF_DEVICES,
     CONF_ENTITY,
     CONF_FAIL_SAFE,
+    CONF_GRID,
     CONF_GRID_MAX,
     CONF_HC_BOOST,
     CONF_HC_FALLBACK,
@@ -41,6 +42,7 @@ from .const import (
     CONF_SETTLE,
     CONF_SOLAR,
     CONF_TARIFF,
+    CONF_USE_GRID,
     DEFAULT_BATTERY_CAP,
     DEFAULT_BATTERY_SOC_MIN,
     DEFAULT_DEVICE_PRIORITY,
@@ -73,6 +75,13 @@ def _req(key: str, value: Any):
     return vol.Required(key, default=value)
 
 
+def _opt(key: str, value: Any):
+    """Champ facultatif, avec valeur par défaut seulement si elle existe."""
+    if value is None or value == "":
+        return vol.Optional(key)
+    return vol.Optional(key, default=value)
+
+
 def _settings_schema(defaults: dict[str, Any]) -> vol.Schema:
     """Formulaire des réglages globaux."""
     sensors = selector.EntitySelector(selector.EntitySelectorConfig(domain="sensor"))
@@ -83,9 +92,11 @@ def _settings_schema(defaults: dict[str, Any]) -> vol.Schema:
         {
             _req(CONF_SOLAR, defaults.get(CONF_SOLAR)): sensors,
             _req(CONF_LOAD, defaults.get(CONF_LOAD)): sensors,
-            vol.Optional(CONF_BATTERY_POWER, default=defaults.get(CONF_BATTERY_POWER)): optional_sensor,
-            vol.Optional(CONF_BATTERY_SOC, default=defaults.get(CONF_BATTERY_SOC)): optional_sensor,
-            vol.Optional(CONF_TARIFF, default=defaults.get(CONF_TARIFF)): optional_sensor,
+            _opt(CONF_BATTERY_POWER, defaults.get(CONF_BATTERY_POWER)): optional_sensor,
+            _opt(CONF_BATTERY_SOC, defaults.get(CONF_BATTERY_SOC)): optional_sensor,
+            _opt(CONF_GRID, defaults.get(CONF_GRID)): optional_sensor,
+            vol.Optional(CONF_USE_GRID, default=defaults.get(CONF_USE_GRID, False)): bool,
+            _opt(CONF_TARIFF, defaults.get(CONF_TARIFF)): optional_sensor,
             vol.Optional(CONF_HC_VALUES, default=defaults.get(CONF_HC_VALUES, DEFAULT_HC_VALUES)): str,
             vol.Optional(CONF_BATTERY_SIGN, default=defaults.get(CONF_BATTERY_SIGN, True)): bool,
             vol.Optional(CONF_ALLOW_DISCHARGE, default=defaults.get(CONF_ALLOW_DISCHARGE, True)): bool,

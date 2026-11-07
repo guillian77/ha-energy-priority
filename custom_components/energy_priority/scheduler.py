@@ -67,6 +67,7 @@ class Settings:
     grid_max_w: float | None = None
     fail_safe_all_off: bool = True
     hc_ignore_min_times: bool = True
+    use_measured_grid: bool = False
 
 
 @dataclass
@@ -78,6 +79,7 @@ class Inputs:
     battery_w: float | None = None
     battery_soc: float | None = None
     hc_active: bool = False
+    grid_w: float | None = None  # positif = import, négatif = export
 
 
 @dataclass
@@ -115,6 +117,13 @@ class Plan:
         return decision.reason if decision else "inconnu"
 
 
+def battery_w_signed(inputs: Inputs, settings: Settings) -> float:
+    """Puissance batterie signée : positif = décharge."""
+    if inputs.battery_w is None:
+        return 0.0
+    return -inputs.battery_w if settings.battery_charge_positive else inputs.battery_w
+
+
 def battery_discharge_w(inputs: Inputs, settings: Settings) -> float:
     """Puissance de décharge batterie utilisable (>= 0)."""
     if not settings.allow_battery_discharge:
@@ -122,8 +131,9 @@ def battery_discharge_w(inputs: Inputs, settings: Settings) -> float:
     if inputs.battery_soc is None or inputs.battery_soc < settings.battery_soc_min:
         return 0.0
     if settings.battery_use_cap:
-        # La batterie peut fournir son maximum à la demande, même en charge.
-        return max(0.0, settings.battery_discharge_cap_w)
+        # Appoint restant sous le plafond : la décharge déjà en cours compte.
+        measured = max(0.0, battery_w_signed(inputs, settings))
+        return max(0.0, settings.battery_discharge_cap_w - measured)
     if inputs.battery_w is None:
         return 0.0
     discharge = (
@@ -149,7 +159,12 @@ def compute_budget(
 
     base_load = max(0.0, inputs.load_w - on_power_w)
     discharge = battery_discharge_w(inputs, settings)
-    available = inputs.solar_w + discharge - base_load - settings.margin_w
+
+    if settings.use_measured_grid and inputs.grid_w is not None:
+        # Le compteur réseau dit la vérité : export disponible, import = 0.
+        available = -inputs.grid_w - settings.margin_w
+    else:
+        available = inputs.solar_w + discharge - base_load - settings.margin_w
 
     # Import réseau réel : mesuré, pas estimé à partir de la décharge autorisée.
     if inputs.battery_w is None:
@@ -158,7 +173,11 @@ def compute_budget(
         signed_charge = (
             inputs.battery_w if settings.battery_charge_positive else -inputs.battery_w
         )
-    grid_import = inputs.load_w - inputs.solar_w + signed_charge
+    grid_import = (
+        inputs.grid_w
+        if inputs.grid_w is not None
+        else inputs.load_w - inputs.solar_w + signed_charge
+    )
     return Budget(
         valid=True,
         base_load_w=round(base_load, 1),

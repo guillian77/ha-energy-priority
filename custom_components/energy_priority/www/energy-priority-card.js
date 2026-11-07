@@ -338,7 +338,8 @@ class EnergyPriorityCard extends HTMLElement {
     const total = appareils.reduce((s, d) => s + (Number(d.accordee) || 0), 0);
     const reference = Math.max(Number(budget) || 0, total, 1);
     const pct = Math.min(100, Math.round((total / reference) * 100));
-    const depasse = Number(budget) > 0 && total > Number(budget);
+    const budgetAffiche = budget === null || budget === undefined ? null : Math.max(0, Number(budget));
+    const depasse = budgetAffiche !== null && total > budgetAffiche;
 
     const ligneSource = (cls, label, valeur, sous) => `
       <div class="source">
@@ -397,7 +398,7 @@ class EnergyPriorityCard extends HTMLElement {
           <b>${fmt(total, "W")}</b>
           <div class="info">
             <span>accordés</span>
-            <span class="${depasse ? "force" : ""}">budget ${budget === null || budget === undefined ? "—" : fmt(budget, "W")}</span>
+            <span class="${depasse ? "force" : ""}">budget ${budgetAffiche === null ? "—" : fmt(budgetAffiche, "W")}</span>
           </div>
         </div>
         <div class="jauge ${depasse ? "depasse" : ""}"><i style="width:${pct}%"></i></div>

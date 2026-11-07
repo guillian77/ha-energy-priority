@@ -70,8 +70,26 @@ class BudgetTests(unittest.TestCase):
         settings = Settings(margin_w=100, battery_use_cap=True, battery_discharge_cap_w=1200)
         inputs = Inputs(solar_w=1148, load_w=1519, battery_w=-406, battery_soc=79)
         budget = compute_budget(inputs, settings, on_power_w=1194)
-        self.assertEqual(budget.battery_discharge_w, 1200)  # budget inchange
+        # plafond 1200 dont 406 deja fournis par la batterie
+        self.assertEqual(budget.battery_discharge_w, 794)
         self.assertEqual(budget.grid_import_w, -35)         # mais l'import reste reel
+
+    def test_measured_grid_budget(self):
+        # on importe 1027 W : plus rien de disponible malgre le solaire
+        settings = Settings(margin_w=100, use_measured_grid=True, battery_use_cap=True,
+                            battery_discharge_cap_w=1000)
+        inputs = Inputs(solar_w=1817, load_w=3482, battery_w=-637, battery_soc=25,
+                        grid_w=1027)
+        budget = compute_budget(inputs, settings, on_power_w=2400)
+        self.assertEqual(budget.battery_discharge_w, 363)
+        self.assertEqual(budget.available_w, -1127)
+        self.assertEqual(budget.grid_import_w, 1027)
+
+    def test_measured_grid_budget_when_exporting(self):
+        settings = Settings(margin_w=100, use_measured_grid=True)
+        inputs = Inputs(solar_w=3000, load_w=1000, battery_w=0, battery_soc=80, grid_w=-1500)
+        budget = compute_budget(inputs, settings, on_power_w=0)
+        self.assertEqual(budget.available_w, 1400)
 
     def test_battery_soc_floor_blocks_discharge(self):
         settings = Settings(margin_w=0, battery_soc_min=30)
