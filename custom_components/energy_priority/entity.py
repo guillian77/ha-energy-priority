@@ -39,7 +39,6 @@ class EnergyPriorityDeviceEntity(EnergyPriorityEntity):
             name=config.name,
             manufacturer="Energy Priority",
             model="Appareil piloté",
-            via_device=(DOMAIN, coordinator.entry.entry_id),
         )
 
     @property
