@@ -164,7 +164,10 @@ def compute_budget(
         # Le compteur réseau dit la vérité. On réintègre la puissance des
         # appareils pilotés déjà allumés : sans cela, leur propre coupure fait
         # apparaître un export artificiel et provoque un redémarrage immédiat.
-        available = -inputs.grid_w + on_power_w - settings.margin_w
+        # On ajoute l'appoint batterie encore disponible (plafond moins ce qui
+        # est déjà déchargé) : le compteur ne peut pas l'anticiper.
+        appoint = discharge if settings.battery_use_cap else 0.0
+        available = -inputs.grid_w + on_power_w + appoint - settings.margin_w
     else:
         available = inputs.solar_w + discharge - base_load - settings.margin_w
 
