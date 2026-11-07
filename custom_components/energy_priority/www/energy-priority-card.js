@@ -30,7 +30,10 @@ const STYLE = `
     font-size: 15px;
     font-weight: 600;
     color: var(--primary-text-color);
+    cursor: pointer;
+    transition: color .2s ease;
   }
+  .titre:hover { color: var(--primary-color, #03a9f4); text-decoration: underline; }
   .hc {
     font-size: 11px;
     font-weight: 700;
@@ -149,6 +152,15 @@ const STYLE = `
     border-color: rgba(245, 158, 11, .45);
     background: linear-gradient(90deg, rgba(245,158,11,.10), rgba(245,158,11,.02));
   }
+  .appareil { cursor: pointer; }
+  .appareil:hover { border-color: var(--primary-color, #03a9f4); }
+  .appareil:focus-visible { outline: 2px solid var(--primary-color, #03a9f4); outline-offset: 2px; }
+  .chev {
+    font-size: 17px; line-height: 1;
+    color: var(--secondary-text-color);
+    margin-left: 6px; opacity: .55;
+  }
+  .appareil:hover .chev, .appareil:focus-visible .chev { opacity: 1; color: var(--primary-color, #03a9f4); }
   .prio {
     width: 24px; height: 24px;
     border-radius: 8px;
@@ -216,6 +228,59 @@ class EnergyPriorityCard extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this._config = {};
     this._dernier = null;
+    this.addEventListener("click", (ev) => this._interaction(ev));
+    this.addEventListener("keydown", (ev) => {
+      if (ev.key === "Enter" || ev.key === " ") {
+        this._interaction(ev);
+      }
+    });
+  }
+
+  /** Navigation SPA (même technique que les cartes Home Assistant). */
+  _naviguer(chemin) {
+    try {
+      history.pushState(null, "", chemin);
+    } catch (err) {
+      window.location.href = chemin;
+      return;
+    }
+    window.dispatchEvent(
+      new CustomEvent("location-changed", {
+        detail: { replace: false },
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+
+  /** Ouvre la page de l'appareil, ou la fenêtre d'information à défaut. */
+  _ouvrirAppareil(entityId) {
+    if (!entityId) return;
+    const registre = this._hass && this._hass.entities ? this._hass.entities[entityId] : null;
+    if (registre && registre.device_id) {
+      this._naviguer(`/config/devices/device/${registre.device_id}`);
+      return;
+    }
+    this.dispatchEvent(
+      new CustomEvent("hass-more-info", {
+        detail: { entityId },
+        bubbles: true,
+        composed: true,
+      })
+    );
+  }
+
+  _interaction(ev) {
+    const chemin = ev.composedPath ? ev.composedPath() : [ev.target];
+    const lien = chemin.find((n) => n && n.dataset && n.dataset.nav);
+    if (lien) {
+      this._naviguer(lien.dataset.nav);
+      return;
+    }
+    const ligne = chemin.find((n) => n && n.dataset && n.dataset.entite !== undefined);
+    if (ligne) {
+      this._ouvrirAppareil(ligne.dataset.entite);
+    }
   }
 
   static getStubConfig() {
@@ -308,14 +373,15 @@ class EnergyPriorityCard extends HTMLElement {
           ? `quota ${Number(d.marche_24h_h).toFixed(1)}/${Number(d.quota_h)} h`
           : "";
         return `
-          <div class="appareil ${d.etat ? "actif" : ""}">
+          <div class="appareil ${d.etat ? "actif" : ""}" data-entite="${d.entite || ""}"
+               role="button" tabindex="0" title="Configurer ${d.nom}">
             <div class="prio">${d.priorite}</div>
             <div>
               <div class="nom">${d.nom} ${mode}</div>
               <div class="det"><span>${fmt(nominale, "W")} nominal</span>${quota ? `<span>· ${quota}</span>` : ""}</div>
               <div class="barre"><i style="width:${part}%"></i></div>
             </div>
-            <div class="w">${accordee > 0 ? fmt(accordee, "W") : "0 W"}<small>${d.etat ? "accordée" : "en attente"}</small></div>
+            <div class="w">${accordee > 0 ? fmt(accordee, "W") : "0 W"}<small>${d.etat ? "accordée" : "en attente"}<span class="chev">›</span></small></div>
           </div>`;
       })
       .join("");
@@ -323,7 +389,8 @@ class EnergyPriorityCard extends HTMLElement {
     this.shadowRoot.innerHTML = `<style>${STYLE}</style>
       <ha-card>
         <div class="entete">
-          <span class="titre">Répartition de puissance</span>
+          <span class="titre" data-nav="/config/integrations/integration/energy_priority"
+                title="Ouvrir l'intégration" role="link" tabindex="0">Répartition de puissance</span>
           ${a.heures_creuses ? '<span class="hc">heures creuses</span>' : ""}
         </div>
         <div class="budget">

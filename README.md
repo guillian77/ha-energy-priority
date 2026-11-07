@@ -101,6 +101,10 @@ Elle affiche, en temps réel : le total accordé face au budget, le solaire, la
 batterie (avec SOC) et le réseau, puis chaque appareil avec sa priorité, sa
 puissance accordée, sa barre de charge et son avancement de quota.
 
+Navigation : le titre ouvre la page de l'intégration (options, réglages globaux,
+ajout/suppression d'appareils) ; un clic sur une ligne d'appareil ouvre sa page
+d'appareil, où la priorité, le quota et le mode se modifient directement.
+
 ## Réglages conseillés
 
 - **Marge** 100 à 200 W : évite de coller au plafond réel.
