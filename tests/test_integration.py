@@ -85,6 +85,20 @@ async def test_setup_creates_entities(hass: HomeAssistant, harness) -> None:
     assert hass.states.get("number.ballon_priorite") is not None
 
 
+async def test_plan_sensor_exposes_devices(hass: HomeAssistant, harness) -> None:
+    entry, _ = harness
+    state = hass.states.get("sensor.energy_priority_repartition")
+    assert state is not None
+    attributes = state.attributes
+    assert attributes["solaire_w"] == 3000
+    assert attributes["budget_w"] is not None
+    appareils = {a["nom"]: a for a in attributes["appareils"]}
+    assert appareils["Clim"]["accordee"] == 1000
+    assert appareils["Clim"]["etat"] is True
+    assert appareils["Ballon"]["accordee"] == 0
+    assert appareils["Ballon"]["etat"] is False
+
+
 async def test_priority_allocation(hass: HomeAssistant, harness) -> None:
     entry, calls = harness
     plan = entry.runtime_data.plan

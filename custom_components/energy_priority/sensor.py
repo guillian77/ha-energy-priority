@@ -23,6 +23,7 @@ async def async_setup_entry(
 ) -> None:
     coordinator: EnergyPriorityCoordinator = entry.runtime_data
     entities: list = [
+        EnergyPlanSensor(coordinator),
         AvailablePowerSensor(coordinator),
         BaseLoadSensor(coordinator),
         GridImportSensor(coordinator),
@@ -179,4 +180,74 @@ class DeviceDecisionSensor(EnergyPriorityDeviceEntity, SensorEntity):
             "quota_h": config.quota_h,
             "quota_restant_h": round(decision.deficit_s / 3600, 2),
             "mode": self.coordinator.overrides.get(self._key, Override.AUTO).value,
+        }
+
+
+class EnergyPlanSensor(EnergyPriorityEntity, SensorEntity):
+    """État complet du plan, consommé par la carte de tableau de bord."""
+
+    _attr_name = "Répartition"
+    _attr_icon = "mdi:chart-donut-variant"
+    _attr_device_class = SensorDeviceClass.POWER
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfPower.WATT
+    _attr_suggested_display_precision = 0
+
+    def __init__(self, coordinator: EnergyPriorityCoordinator) -> None:
+        super().__init__(coordinator)
+        self._attr_unique_id = f"{coordinator.entry.entry_id}_plan"
+
+    @property
+    def native_value(self) -> float:
+        plan = self.coordinator.plan
+        return plan.used_w if plan else 0
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        coordinator = self.coordinator
+        plan = coordinator.plan
+        inputs = coordinator.inputs
+        if plan is None:
+            return {}
+
+        appareils = []
+        for key, config in coordinator.devices.items():
+            decision = plan.decisions.get(key)
+            tracker = coordinator.trackers.get(key)
+            override = coordinator.overrides.get(key, Override.AUTO)
+            appareils.append(
+                {
+                    "cle": key,
+                    "nom": config.name,
+                    "entite": config.entity_id,
+                    "puissance": config.power_w,
+                    "accordee": config.power_w if decision and decision.turn_on else 0,
+                    "priorite": config.priority,
+                    "etat": bool(decision and decision.turn_on),
+                    "raison": decision.reason if decision else "",
+                    "quota_h": config.quota_h,
+                    "marche_24h_h": round(
+                        tracker.runtime(dt_util.utcnow().timestamp()) / 3600, 2
+                    )
+                    if tracker
+                    else 0,
+                    "mode": override.value,
+                    "quota_restant_h": round(decision.deficit_s / 3600, 2)
+                    if decision
+                    else 0,
+                }
+            )
+        appareils.sort(key=lambda item: (item["priorite"], item["nom"]))
+
+        return {
+            "solaire_w": inputs.solar_w if inputs else None,
+            "consommation_w": inputs.load_w if inputs else None,
+            "batterie_w": inputs.battery_w if inputs else None,
+            "batterie_soc": inputs.battery_soc if inputs else None,
+            "heures_creuses": inputs.hc_active if inputs else False,
+            "reseau_w": plan.budget.grid_import_w if plan.budget.valid else None,
+            "budget_w": plan.budget.available_w if plan.budget.valid else None,
+            "charge_de_base_w": plan.budget.base_load_w,
+            "decharge_autorisee_w": plan.budget.battery_discharge_w,
+            "appareils": appareils,
         }

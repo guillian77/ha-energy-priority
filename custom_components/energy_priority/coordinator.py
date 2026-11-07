@@ -139,6 +139,7 @@ class EnergyPriorityCoordinator(DataUpdateCoordinator[Plan]):
         self.overrides: dict[str, Override] = {}
         self.enabled = True
         self.plan: Plan | None = None
+        self.inputs: Inputs | None = None
         self._last_save = 0.0
         self._store = Store(hass, STORAGE_VERSION, f"{DOMAIN}.{entry.entry_id}")
         interval = self._cfg(CONF_INTERVAL, DEFAULT_SCAN_INTERVAL)
@@ -268,6 +269,7 @@ class EnergyPriorityCoordinator(DataUpdateCoordinator[Plan]):
         self._load_devices()
         now = dt_util.utcnow().timestamp()
         inputs = self._read_inputs()
+        self.inputs = inputs
 
         pairs: list[tuple[DeviceConfig, DeviceSnapshot]] = []
         for key, config in self.devices.items():

@@ -83,6 +83,24 @@ Par appareil :
 - `sensor` — décision courante + attribut `raison` (utile pour comprendre un choix)
 - `binary_sensor` — quota non atteint (uniquement si un quota est défini)
 
+## Carte de tableau de bord
+
+L'intégration embarque sa propre carte : elle est enregistrée automatiquement au
+chargement, aucune installation HACS supplémentaire n'est nécessaire.
+
+<p align="center">
+  <img src="docs/carte.png" alt="Carte Energy Priority" width="100%">
+</p>
+
+```yaml
+type: custom:energy-priority-card
+entity: sensor.energy_priority_repartition   # facultatif, détecté automatiquement
+```
+
+Elle affiche, en temps réel : le total accordé face au budget, le solaire, la
+batterie (avec SOC) et le réseau, puis chaque appareil avec sa priorité, sa
+puissance accordée, sa barre de charge et son avancement de quota.
+
 ## Réglages conseillés
 
 - **Marge** 100 à 200 W : évite de coller au plafond réel.
