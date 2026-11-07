@@ -161,8 +161,10 @@ def compute_budget(
     discharge = battery_discharge_w(inputs, settings)
 
     if settings.use_measured_grid and inputs.grid_w is not None:
-        # Le compteur réseau dit la vérité : export disponible, import = 0.
-        available = -inputs.grid_w - settings.margin_w
+        # Le compteur réseau dit la vérité. On réintègre la puissance des
+        # appareils pilotés déjà allumés : sans cela, leur propre coupure fait
+        # apparaître un export artificiel et provoque un redémarrage immédiat.
+        available = -inputs.grid_w + on_power_w - settings.margin_w
     else:
         available = inputs.solar_w + discharge - base_load - settings.margin_w
 

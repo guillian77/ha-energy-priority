@@ -82,8 +82,20 @@ class BudgetTests(unittest.TestCase):
                         grid_w=1027)
         budget = compute_budget(inputs, settings, on_power_w=2400)
         self.assertEqual(budget.battery_discharge_w, 363)
-        self.assertEqual(budget.available_w, -1127)
+        # -1027 import + 2400 W de clims deja allumees - 100 de marge = 1273
+        self.assertEqual(budget.available_w, 1273)
         self.assertEqual(budget.grid_import_w, 1027)
+
+    def test_measured_grid_stable_across_device_switching(self):
+        # clim allumee : import 1027 W -> budget 73 W
+        settings = Settings(margin_w=100, use_measured_grid=True)
+        with_clim = Inputs(solar_w=1817, load_w=3482, battery_w=-637, battery_soc=25, grid_w=1027)
+        b1 = compute_budget(with_clim, settings, on_power_w=1200)
+        # clim coupee : on exporte 173 W -> meme budget, pas de va-et-vient
+        without = Inputs(solar_w=1817, load_w=2282, battery_w=-637, battery_soc=25, grid_w=-173)
+        b2 = compute_budget(without, settings, on_power_w=0)
+        self.assertEqual(b1.available_w, 73)
+        self.assertEqual(b2.available_w, 73)
 
     def test_measured_grid_budget_when_exporting(self):
         settings = Settings(margin_w=100, use_measured_grid=True)
