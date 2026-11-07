@@ -63,6 +63,11 @@ redémarrer Home Assistant.
 3. Ajouter les appareils via **Configurer** sur l'intégration (ajout, modification,
    suppression), en précisant puissance nominale, priorité, durées minimales et quota.
 
+Le formulaire de réglages est découpé en sections (Capteurs, Batterie, Budget et
+régulation, Heures creuses, Sécurité) et chaque champ possède une description
+affichée sous le libellé, pour éviter les mauvaises interprétations de signe ou
+d'unité.
+
 ## Entités créées
 
 Globales :

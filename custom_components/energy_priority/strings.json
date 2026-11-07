@@ -3,7 +3,7 @@
     "step": {
       "user": {
         "title": "Energy Priority — capteurs et réglages",
-        "description": "Sélectionnez les capteurs d'énergie et les réglages du contrôleur.",
+        "description": "Renseigne tes capteurs d'énergie puis les paramètres de régulation. Tu pourras tout modifier plus tard via Configurer, et ajouter tes appareils.",
         "data": {
           "solar_power": "Puissance solaire (W)",
           "load_power": "Consommation globale (W)",
@@ -25,7 +25,35 @@
           "battery_use_cap": "La batterie peut fournir sa puissance maximale à la demande (même en charge)",
           "hc_ignore_min_times": "Ignorer les durées minimales de marche/arrêt pendant le forçage en heures creuses",
           "grid_power": "Puissance réseau (W, positif = import)",
-          "use_measured_grid": "Calculer le budget sur l'export réseau mesuré (recommandé avec un compteur)"
+          "use_measured_grid": "Calculer le budget sur l'export réseau mesuré (recommandé avec un compteur)",
+          "capteurs": "🔆 Capteurs d'énergie",
+          "batterie": "🔋 Batterie",
+          "budget": "📊 Budget et régulation",
+          "heures_creuses": "🌙 Heures creuses",
+          "securite": "🛡️ Sécurité"
+        },
+        "data_description": {
+          "solar_power": "Production photovoltaïque instantanée, en watts.",
+          "load_power": "Consommation totale de la maison, appareils pilotés compris. Sert à isoler la charge de base.",
+          "battery_power": "Flux batterie instantané. Son signe dépend de la case ci-dessous.",
+          "battery_soc": "Niveau de charge de la batterie, en pourcentage.",
+          "grid_power": "Puissance au compteur : positive en import, négative en export. Indispensable pour un budget basé sur la mesure réelle.",
+          "tariff_entity": "Capteur qui bascule en « HC » pendant les heures creuses (Linky, Tempo…).",
+          "hc_values": "Préfixes d'état signifiant « heures creuses », séparés par des virgules. Défaut : HC (couvre HC.. et HC).",
+          "battery_charge_positive": "À cocher si ton capteur est positif quand la batterie CHARGE. Dans le doute : regarde la valeur pendant une charge.",
+          "allow_battery_discharge": "Autorise le contrôleur à compter sur la batterie pour alimenter les appareils.",
+          "battery_use_cap": "Compte la batterie pour son plafond, même pendant une phase de charge. À décocher si l'onduleur ne suit pas la demande.",
+          "battery_discharge_cap": "Puissance réelle que la batterie peut fournir en pointe, pas la valeur de la fiche technique. Trop haute = import réseau.",
+          "battery_soc_min": "Plancher de sécurité : en dessous, la batterie n'est plus sollicitée.",
+          "use_measured_grid": "Le budget devient l'export réellement constaté au compteur, au lieu d'un calcul solaire − consommation. Supprime les surestimations.",
+          "margin": "Réserve retirée du budget. Évite de frôler le plafond réel de l'installation.",
+          "hysteresis": "Tolérance avant de couper un appareil déjà allumé. Plus haut = coupures moins sensibles aux variations passagères.",
+          "grid_max": "Import réseau maximal autorisé pendant un forçage heures creuses. 0 = aucune limite.",
+          "scan_interval": "Fréquence de recalcul du budget. 10 s = réactif ; 20 à 30 s = lisse les transitoires (nuages, démarrages).",
+          "settle": "Délai après une commutation pendant lequel l'appareil n'est pas re-commandé, le temps que les mesures se stabilisent.",
+          "hc_boost": "En heures creuses, un appareil en retard de quota est forcé, même sans surplus solaire.",
+          "hc_ignore_min_times": "Pendant ce forçage, ignore les durées minimales de marche/arrêt pour éviter des cycles de 5 minutes.",
+          "fail_safe_all_off": "Si un capteur indispensable devient indisponible, coupe tous les appareils pilotés."
         }
       },
       "device": {
@@ -61,7 +89,7 @@
       },
       "settings": {
         "title": "Réglages globaux",
-        "description": "Capteurs et paramètres du contrôleur.",
+        "description": "Capteurs et paramètres du contrôleur. Les sections sont dépliables.",
         "data": {
           "solar_power": "Puissance solaire (W)",
           "load_power": "Consommation globale (W)",
@@ -83,7 +111,35 @@
           "battery_use_cap": "La batterie peut fournir sa puissance maximale à la demande (même en charge)",
           "hc_ignore_min_times": "Ignorer les durées minimales de marche/arrêt pendant le forçage en heures creuses",
           "grid_power": "Puissance réseau (W, positif = import)",
-          "use_measured_grid": "Calculer le budget sur l'export réseau mesuré (recommandé avec un compteur)"
+          "use_measured_grid": "Calculer le budget sur l'export réseau mesuré (recommandé avec un compteur)",
+          "capteurs": "🔆 Capteurs d'énergie",
+          "batterie": "🔋 Batterie",
+          "budget": "📊 Budget et régulation",
+          "heures_creuses": "🌙 Heures creuses",
+          "securite": "🛡️ Sécurité"
+        },
+        "data_description": {
+          "solar_power": "Production photovoltaïque instantanée, en watts.",
+          "load_power": "Consommation totale de la maison, appareils pilotés compris. Sert à isoler la charge de base.",
+          "battery_power": "Flux batterie instantané. Son signe dépend de la case ci-dessous.",
+          "battery_soc": "Niveau de charge de la batterie, en pourcentage.",
+          "grid_power": "Puissance au compteur : positive en import, négative en export. Indispensable pour un budget basé sur la mesure réelle.",
+          "tariff_entity": "Capteur qui bascule en « HC » pendant les heures creuses (Linky, Tempo…).",
+          "hc_values": "Préfixes d'état signifiant « heures creuses », séparés par des virgules. Défaut : HC (couvre HC.. et HC).",
+          "battery_charge_positive": "À cocher si ton capteur est positif quand la batterie CHARGE. Dans le doute : regarde la valeur pendant une charge.",
+          "allow_battery_discharge": "Autorise le contrôleur à compter sur la batterie pour alimenter les appareils.",
+          "battery_use_cap": "Compte la batterie pour son plafond, même pendant une phase de charge. À décocher si l'onduleur ne suit pas la demande.",
+          "battery_discharge_cap": "Puissance réelle que la batterie peut fournir en pointe, pas la valeur de la fiche technique. Trop haute = import réseau.",
+          "battery_soc_min": "Plancher de sécurité : en dessous, la batterie n'est plus sollicitée.",
+          "use_measured_grid": "Le budget devient l'export réellement constaté au compteur, au lieu d'un calcul solaire − consommation. Supprime les surestimations.",
+          "margin": "Réserve retirée du budget. Évite de frôler le plafond réel de l'installation.",
+          "hysteresis": "Tolérance avant de couper un appareil déjà allumé. Plus haut = coupures moins sensibles aux variations passagères.",
+          "grid_max": "Import réseau maximal autorisé pendant un forçage heures creuses. 0 = aucune limite.",
+          "scan_interval": "Fréquence de recalcul du budget. 10 s = réactif ; 20 à 30 s = lisse les transitoires (nuages, démarrages).",
+          "settle": "Délai après une commutation pendant lequel l'appareil n'est pas re-commandé, le temps que les mesures se stabilisent.",
+          "hc_boost": "En heures creuses, un appareil en retard de quota est forcé, même sans surplus solaire.",
+          "hc_ignore_min_times": "Pendant ce forçage, ignore les durées minimales de marche/arrêt pour éviter des cycles de 5 minutes.",
+          "fail_safe_all_off": "Si un capteur indispensable devient indisponible, coupe tous les appareils pilotés."
         }
       },
       "add_device": {

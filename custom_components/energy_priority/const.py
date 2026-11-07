@@ -5,7 +5,7 @@ from __future__ import annotations
 from homeassistant.const import Platform
 
 DOMAIN = "energy_priority"
-VERSION = "1.6.2"
+VERSION = "1.7.0"
 
 PLATFORMS: list[Platform] = [
     Platform.SWITCH,

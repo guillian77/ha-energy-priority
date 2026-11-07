@@ -7,6 +7,7 @@ from typing import Any
 import voluptuous as vol
 
 from homeassistant.config_entries import ConfigEntry, ConfigFlow, OptionsFlow
+from homeassistant.data_entry_flow import SectionConfig, section
 from homeassistant.core import callback
 from homeassistant.helpers import selector
 from homeassistant.util import slugify
@@ -83,40 +84,124 @@ def _opt(key: str, value: Any):
 
 
 def _settings_schema(defaults: dict[str, Any]) -> vol.Schema:
-    """Formulaire des réglages globaux."""
-    sensors = selector.EntitySelector(selector.EntitySelectorConfig(domain="sensor"))
-    optional_sensor = selector.EntitySelector(
-        selector.EntitySelectorConfig(domain="sensor"), 
-    )
+    """Formulaire des réglages globaux, organisé en sections thématiques."""
+    sensor = selector.EntitySelector(selector.EntitySelectorConfig(domain="sensor"))
+    watts = POWER
+
+    def bloc_capteurs() -> vol.Schema:
+        return vol.Schema(
+            {
+                _req(CONF_SOLAR, defaults.get(CONF_SOLAR)): sensor,
+                _req(CONF_LOAD, defaults.get(CONF_LOAD)): sensor,
+                _opt(CONF_BATTERY_POWER, defaults.get(CONF_BATTERY_POWER)): sensor,
+                _opt(CONF_BATTERY_SOC, defaults.get(CONF_BATTERY_SOC)): sensor,
+                _opt(CONF_GRID, defaults.get(CONF_GRID)): sensor,
+                _opt(CONF_TARIFF, defaults.get(CONF_TARIFF)): sensor,
+                vol.Optional(
+                    CONF_HC_VALUES, default=defaults.get(CONF_HC_VALUES, DEFAULT_HC_VALUES)
+                ): str,
+            }
+        )
+
+    def bloc_batterie() -> vol.Schema:
+        return vol.Schema(
+            {
+                vol.Optional(
+                    CONF_BATTERY_SIGN, default=defaults.get(CONF_BATTERY_SIGN, True)
+                ): bool,
+                vol.Optional(
+                    CONF_ALLOW_DISCHARGE, default=defaults.get(CONF_ALLOW_DISCHARGE, True)
+                ): bool,
+                vol.Optional(
+                    CONF_BATTERY_USE_CAP, default=defaults.get(CONF_BATTERY_USE_CAP, False)
+                ): bool,
+                vol.Optional(
+                    CONF_BATTERY_CAP, default=defaults.get(CONF_BATTERY_CAP, DEFAULT_BATTERY_CAP)
+                ): watts,
+                vol.Optional(
+                    CONF_BATTERY_SOC_MIN,
+                    default=defaults.get(CONF_BATTERY_SOC_MIN, DEFAULT_BATTERY_SOC_MIN),
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=0,
+                        max=100,
+                        step=1,
+                        unit_of_measurement="%",
+                        mode=selector.NumberSelectorMode.SLIDER,
+                    )
+                ),
+            }
+        )
+
+    def bloc_budget() -> vol.Schema:
+        return vol.Schema(
+            {
+                vol.Optional(
+                    CONF_USE_GRID, default=defaults.get(CONF_USE_GRID, False)
+                ): bool,
+                vol.Optional(
+                    CONF_MARGIN, default=defaults.get(CONF_MARGIN, DEFAULT_MARGIN)
+                ): watts,
+                vol.Optional(
+                    CONF_HYSTERESIS, default=defaults.get(CONF_HYSTERESIS, DEFAULT_HYSTERESIS)
+                ): watts,
+                vol.Optional(
+                    CONF_GRID_MAX, default=defaults.get(CONF_GRID_MAX, 0)
+                ): watts,
+                vol.Optional(
+                    CONF_INTERVAL, default=defaults.get(CONF_INTERVAL, DEFAULT_SCAN_INTERVAL)
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=5, max=300, step=1, unit_of_measurement="s", mode=selector.NumberSelectorMode.BOX
+                    )
+                ),
+                vol.Optional(
+                    CONF_SETTLE, default=defaults.get(CONF_SETTLE, DEFAULT_SETTLE)
+                ): SECONDS,
+            }
+        )
+
+    def bloc_hc() -> vol.Schema:
+        return vol.Schema(
+            {
+                vol.Optional(
+                    CONF_HC_BOOST, default=defaults.get(CONF_HC_BOOST, True)
+                ): bool,
+                vol.Optional(
+                    CONF_HC_IGNORE_MIN, default=defaults.get(CONF_HC_IGNORE_MIN, True)
+                ): bool,
+            }
+        )
+
+    def bloc_securite() -> vol.Schema:
+        return vol.Schema(
+            {
+                vol.Optional(
+                    CONF_FAIL_SAFE, default=defaults.get(CONF_FAIL_SAFE, True)
+                ): bool,
+            }
+        )
+
     return vol.Schema(
         {
-            _req(CONF_SOLAR, defaults.get(CONF_SOLAR)): sensors,
-            _req(CONF_LOAD, defaults.get(CONF_LOAD)): sensors,
-            _opt(CONF_BATTERY_POWER, defaults.get(CONF_BATTERY_POWER)): optional_sensor,
-            _opt(CONF_BATTERY_SOC, defaults.get(CONF_BATTERY_SOC)): optional_sensor,
-            _opt(CONF_GRID, defaults.get(CONF_GRID)): optional_sensor,
-            vol.Optional(CONF_USE_GRID, default=defaults.get(CONF_USE_GRID, False)): bool,
-            _opt(CONF_TARIFF, defaults.get(CONF_TARIFF)): optional_sensor,
-            vol.Optional(CONF_HC_VALUES, default=defaults.get(CONF_HC_VALUES, DEFAULT_HC_VALUES)): str,
-            vol.Optional(CONF_BATTERY_SIGN, default=defaults.get(CONF_BATTERY_SIGN, True)): bool,
-            vol.Optional(CONF_ALLOW_DISCHARGE, default=defaults.get(CONF_ALLOW_DISCHARGE, True)): bool,
-            vol.Optional(CONF_BATTERY_USE_CAP, default=defaults.get(CONF_BATTERY_USE_CAP, False)): bool,
-            vol.Optional(CONF_BATTERY_CAP, default=defaults.get(CONF_BATTERY_CAP, DEFAULT_BATTERY_CAP)): POWER,
-            vol.Optional(CONF_BATTERY_SOC_MIN, default=defaults.get(CONF_BATTERY_SOC_MIN, DEFAULT_BATTERY_SOC_MIN)): selector.NumberSelector(
-                selector.NumberSelectorConfig(min=0, max=100, step=1, unit_of_measurement="%", mode=selector.NumberSelectorMode.SLIDER)
-            ),
-            vol.Optional(CONF_MARGIN, default=defaults.get(CONF_MARGIN, DEFAULT_MARGIN)): POWER,
-            vol.Optional(CONF_HYSTERESIS, default=defaults.get(CONF_HYSTERESIS, DEFAULT_HYSTERESIS)): POWER,
-            vol.Optional(CONF_GRID_MAX, default=defaults.get(CONF_GRID_MAX, 0)): POWER,
-            vol.Optional(CONF_INTERVAL, default=defaults.get(CONF_INTERVAL, DEFAULT_SCAN_INTERVAL)): selector.NumberSelector(
-                selector.NumberSelectorConfig(min=5, max=300, step=1, unit_of_measurement="s", mode=selector.NumberSelectorMode.BOX)
-            ),
-            vol.Optional(CONF_SETTLE, default=defaults.get(CONF_SETTLE, DEFAULT_SETTLE)): SECONDS,
-            vol.Optional(CONF_HC_BOOST, default=defaults.get(CONF_HC_BOOST, True)): bool,
-            vol.Optional(CONF_HC_IGNORE_MIN, default=defaults.get(CONF_HC_IGNORE_MIN, True)): bool,
-            vol.Optional(CONF_FAIL_SAFE, default=defaults.get(CONF_FAIL_SAFE, True)): bool,
+            vol.Required("capteurs"): section(bloc_capteurs(), SectionConfig({"collapsed": False})),
+            vol.Required("batterie"): section(bloc_batterie(), SectionConfig({"collapsed": False})),
+            vol.Required("budget"): section(bloc_budget(), SectionConfig({"collapsed": False})),
+            vol.Required("heures_creuses"): section(bloc_hc(), SectionConfig({"collapsed": True})),
+            vol.Required("securite"): section(bloc_securite(), SectionConfig({"collapsed": True})),
         }
     )
+
+
+def _flatten(user_input: dict[str, Any]) -> dict[str, Any]:
+    """Aplatit les sections du formulaire (compatibilité avec l'ancien format)."""
+    plat: dict[str, Any] = {}
+    for cle, valeur in user_input.items():
+        if isinstance(valeur, dict):
+            plat.update(valeur)
+        else:
+            plat[cle] = valeur
+    return plat
 
 
 def _device_schema(
@@ -172,7 +257,7 @@ class EnergyPriorityConfigFlow(ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             await self.async_set_unique_id(DOMAIN)
             self._abort_if_unique_id_configured()
-            self._data = dict(user_input)
+            self._data = _flatten(user_input)
             return await self.async_step_device()
         return self.async_show_form(step_id="user", data_schema=_settings_schema({}))
 
@@ -232,7 +317,7 @@ class EnergyPriorityOptionsFlow(OptionsFlow):
     async def async_step_settings(self, user_input: dict[str, Any] | None = None):
         if user_input is not None:
             options = dict(self.config_entry.options)
-            options.update(user_input)
+            options.update(_flatten(user_input))
             return self.async_create_entry(title="", data=options)
         defaults = dict(self.config_entry.data)
         defaults.update(self.config_entry.options)

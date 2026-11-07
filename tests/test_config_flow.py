@@ -40,12 +40,41 @@ DEVICE_INPUT = {
 }
 
 
+FORM_INPUT = {
+    "capteurs": {
+        "solar_power": "sensor.solar",
+        "load_power": "sensor.load",
+        "battery_power": "sensor.battery",
+        "battery_soc": "sensor.soc",
+        "tariff_entity": "sensor.tarif",
+        "hc_values": "HC",
+    },
+    "batterie": {
+        "battery_charge_positive": True,
+        "allow_battery_discharge": True,
+        "battery_use_cap": False,
+        "battery_discharge_cap": 5000,
+        "battery_soc_min": 20,
+    },
+    "budget": {
+        "use_measured_grid": False,
+        "margin": 100,
+        "hysteresis": 150,
+        "grid_max": 0,
+        "scan_interval": 10,
+        "settle": 30,
+    },
+    "heures_creuses": {"hc_boost": True, "hc_ignore_min_times": True},
+    "securite": {"fail_safe_all_off": True},
+}
+
+
 async def test_user_flow_creates_entry(hass: HomeAssistant) -> None:
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "user"
 
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], USER_INPUT)
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], FORM_INPUT)
     assert result["type"] == FlowResultType.FORM
     assert result["step_id"] == "device"
 
@@ -56,7 +85,7 @@ async def test_user_flow_creates_entry(hass: HomeAssistant) -> None:
 
 async def test_user_flow_without_device(hass: HomeAssistant) -> None:
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
-    result = await hass.config_entries.flow.async_configure(result["flow_id"], USER_INPUT)
+    result = await hass.config_entries.flow.async_configure(result["flow_id"], FORM_INPUT)
     result = await hass.config_entries.flow.async_configure(
         result["flow_id"], {"add_another": False}
     )
@@ -80,3 +109,28 @@ async def test_options_flow_add_device(hass: HomeAssistant) -> None:
     result = await hass.config_entries.options.async_configure(result["flow_id"], DEVICE_INPUT)
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert "ballon" in entry.options[CONF_DEVICES]
+
+
+async def test_options_settings_sections_are_flattened(hass: HomeAssistant) -> None:
+    """Les sections du formulaire sont aplaties dans les options."""
+    entry = MockConfigEntry(domain=DOMAIN, data=USER_INPUT, options={CONF_DEVICES: {}})
+    entry.add_to_hass(hass)
+    hass.states.async_set("sensor.solar", "1000")
+    hass.states.async_set("sensor.load", "0")
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "settings"}
+    )
+    assert result["type"] == FlowResultType.FORM
+
+    nouveau = {k: dict(v) for k, v in FORM_INPUT.items()}
+    nouveau["budget"]["hysteresis"] = 300
+    nouveau["budget"]["margin"] = 50
+    result = await hass.config_entries.options.async_configure(result["flow_id"], nouveau)
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert entry.options["hysteresis"] == 300
+    assert entry.options["margin"] == 50
+    assert "budget" not in entry.options
