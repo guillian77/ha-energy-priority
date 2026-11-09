@@ -94,6 +94,7 @@ class RuntimeTracker:
     last_change: float = 0.0
     last_command: float = 0.0
     last_command_wall: float = 0.0
+    last_commanded: DevicePhase | None = None
     manual_until: float = 0.0
 
     def update(self, phase: DevicePhase, now: float) -> None:
@@ -329,7 +330,10 @@ class EnergyPriorityCoordinator(DataUpdateCoordinator[Plan]):
         if phase == tracker.phase or tracker.phase == DevicePhase.UNKNOWN:
             return
         settle = float(self._cfg(CONF_SETTLE, DEFAULT_SETTLE))
-        if tracker.last_command_wall and now - tracker.last_command_wall <= settle + 5:
+        recent = tracker.last_command_wall and now - tracker.last_command_wall <= settle + 5
+        # La bascule n'est la nôtre que si elle correspond à l'état commandé :
+        # si on a demandé « arrêt » et qu'on observe « marche », c'est manuel.
+        if recent and phase == tracker.last_commanded:
             return
         tracker.manual_until = now + grace
         _LOGGER.debug(
@@ -362,6 +366,9 @@ class EnergyPriorityCoordinator(DataUpdateCoordinator[Plan]):
             )
             tracker.last_command = time.monotonic()
             tracker.last_command_wall = dt_util.utcnow().timestamp()
+            tracker.last_commanded = (
+                DevicePhase.ON if decision.turn_on else DevicePhase.OFF
+            )
 
     # ---------------------------------------------------------------- persistance
     async def _save(self, force: bool = False) -> None:

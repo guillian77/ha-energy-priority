@@ -225,3 +225,32 @@ async def test_manual_switch_on_pauses_control(hass: HomeAssistant, harness) -> 
     assert plan.decisions["ballon"].turn_on is True
     assert "grâce manuelle" in plan.decisions["ballon"].reason
     assert ("switch", "turn_off", "switch.ballon") not in calls
+
+
+async def test_manual_action_detected_even_right_after_our_command(hass):
+    """Si on a commandé l'arrêt et qu'on voit la marche, c'est manuel."""
+    from custom_components.energy_priority.coordinator import (
+        EnergyPriorityCoordinator,
+        RuntimeTracker,
+    )
+    from custom_components.energy_priority.scheduler import DevicePhase
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    entry = MockConfigEntry(domain=DOMAIN, data=DATA, options={})
+    coordinator = EnergyPriorityCoordinator(hass, entry)
+    now = 1000.0
+
+    tracker = RuntimeTracker()
+    tracker.phase = DevicePhase.OFF
+    tracker.last_commanded = DevicePhase.OFF
+    tracker.last_command_wall = now - 3  # commande d'arrêt il y a 3 s
+    coordinator._detecter_action_manuelle(tracker, DevicePhase.ON, now)
+    assert tracker.manual_until == now + 900
+
+    # la même bascule, mais conforme à notre commande : pas de grâce
+    tracker2 = RuntimeTracker()
+    tracker2.phase = DevicePhase.OFF
+    tracker2.last_commanded = DevicePhase.ON
+    tracker2.last_command_wall = now - 3
+    coordinator._detecter_action_manuelle(tracker2, DevicePhase.ON, now)
+    assert tracker2.manual_until == 0.0
