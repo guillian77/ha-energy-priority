@@ -33,6 +33,7 @@ from .const import (
     CONF_INTERVAL,
     CONF_KEY,
     CONF_LOAD,
+    CONF_MANUAL_GRACE,
     CONF_MARGIN,
     CONF_MIN_OFF,
     CONF_MIN_ON,
@@ -49,6 +50,7 @@ from .const import (
     DEFAULT_DEVICE_PRIORITY,
     DEFAULT_HC_VALUES,
     DEFAULT_HYSTERESIS,
+    DEFAULT_MANUAL_GRACE,
     DEFAULT_MARGIN,
     DEFAULT_MIN_OFF,
     DEFAULT_MIN_ON,
@@ -158,6 +160,15 @@ def _settings_schema(defaults: dict[str, Any]) -> vol.Schema:
                 vol.Optional(
                     CONF_SETTLE, default=defaults.get(CONF_SETTLE, DEFAULT_SETTLE)
                 ): SECONDS,
+                vol.Optional(
+                    CONF_MANUAL_GRACE,
+                    default=defaults.get(CONF_MANUAL_GRACE, DEFAULT_MANUAL_GRACE),
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=0, max=7200, step=60, unit_of_measurement="s",
+                        mode=selector.NumberSelectorMode.BOX,
+                    )
+                ),
             }
         )
 

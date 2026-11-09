@@ -32,13 +32,15 @@ def dev(key, power, priority=10, quota=0.0, hc_fallback=True, min_on=60, min_off
     )
 
 
-def snap(phase=DevicePhase.OFF, on_s=9999, off_s=9999, runtime=0.0, override=Override.AUTO):
+def snap(phase=DevicePhase.OFF, on_s=9999, off_s=9999, runtime=0.0,
+         override=Override.AUTO, grace_s=0.0):
     return DeviceSnapshot(
         phase=phase,
         on_duration_s=on_s,
         off_duration_s=off_s,
         runtime_24h_s=runtime,
         override=override,
+        grace_s=grace_s,
     )
 
 
@@ -263,6 +265,31 @@ class HcContinuousTests(unittest.TestCase):
         inputs = Inputs(solar_w=0, load_w=1500, hc_active=True)
         plan = build_plan(devices, inputs, settings)
         self.assertTrue(plan.decisions["clim"].turn_on)
+
+
+class GraceManuelleTests(unittest.TestCase):
+    def test_grace_keeps_device_on_without_budget(self):
+        devices = [(dev("clim", 1200), snap(DevicePhase.ON, grace_s=600))]
+        settings = Settings(margin_w=0, hysteresis_w=0)
+        inputs = Inputs(solar_w=0, load_w=1500, battery_soc=10)
+        plan = build_plan(devices, inputs, settings)
+        self.assertTrue(plan.decisions["clim"].turn_on)
+        self.assertIn("grâce manuelle", plan.decisions["clim"].reason)
+
+    def test_grace_keeps_device_off_despite_budget(self):
+        devices = [(dev("clim", 1200), snap(DevicePhase.OFF, grace_s=600))]
+        settings = Settings(margin_w=0, hysteresis_w=0)
+        inputs = Inputs(solar_w=9000, load_w=0, battery_soc=80)
+        plan = build_plan(devices, inputs, settings)
+        self.assertFalse(plan.decisions["clim"].turn_on)
+        self.assertIn("grâce manuelle", plan.decisions["clim"].reason)
+
+    def test_grace_beats_hc_boost(self):
+        devices = [(dev("ballon", 2200, quota=2.0), snap(DevicePhase.OFF, grace_s=600))]
+        settings = Settings(margin_w=0)
+        inputs = Inputs(solar_w=0, load_w=0, hc_active=True)
+        plan = build_plan(devices, inputs, settings)
+        self.assertFalse(plan.decisions["ballon"].turn_on)
 
 
 class OverrideTests(unittest.TestCase):

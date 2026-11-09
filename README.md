@@ -119,6 +119,10 @@ d'appareil, où la priorité, le quota et le mode se modifient directement.
 - **Durée minimale de marche** : 180 s pour une clim (protection compresseur),
   1800 s pour un ballon d'eau chaude.
 - **Quota** : 2 h/jour sur le ballon, avec forçage heures creuses activé.
+- **Grâce après action manuelle** : 900 s par défaut. Si tu allumes ou coupes un
+  appareil à la télécommande, au thermostat ou depuis le dashboard, l'intégration
+  le laisse tranquille pendant ce délai au lieu de défaire ton geste au cycle
+  suivant. 0 désactive la fonction.
 - **Budget sur l'export mesuré** : si tu as un capteur de puissance réseau, active
   cette option. Le budget devient alors l'export réellement constaté, ce qui
   supprime toute surestimation (batterie qui ne suit pas, charge batterie, etc.).

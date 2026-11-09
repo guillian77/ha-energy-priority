@@ -51,6 +51,7 @@ class DeviceSnapshot:
     runtime_24h_s: float = 0.0
     override: Override = Override.AUTO
     available: bool = True
+    grace_s: float = 0.0  # > 0 : action manuelle récente, ne pas piloter
 
 
 @dataclass
@@ -247,7 +248,16 @@ def build_plan(
     kept: set[str] = set()
     for config, snapshot in on_devices:
         deficit = deficits[config.key]
-        if config.key in boosting:
+        if snapshot.grace_s > 0:
+            kept.add(config.key)
+            used += config.power_w
+            plan.decisions[config.key] = Decision(
+                config.key,
+                True,
+                f"grâce manuelle ({int(snapshot.grace_s / 60)} min restantes)",
+                deficit,
+            )
+        elif config.key in boosting:
             kept.add(config.key)
             used += config.power_w
             plan.decisions[config.key] = Decision(
@@ -284,7 +294,14 @@ def build_plan(
     boosts: list[tuple[DeviceConfig, DeviceSnapshot, float]] = []
     normal: list[tuple[DeviceConfig, DeviceSnapshot]] = []
     for config, snapshot in off_devices:
-        if config.key in boosting:
+        if snapshot.grace_s > 0:
+            plan.decisions[config.key] = Decision(
+                config.key,
+                False,
+                f"grâce manuelle ({int(snapshot.grace_s / 60)} min restantes)",
+                deficits[config.key],
+            )
+        elif config.key in boosting:
             boosts.append((config, snapshot, deficits[config.key]))
         else:
             normal.append((config, snapshot))

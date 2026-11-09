@@ -53,7 +53,8 @@
               "hysteresis": "Hystérésis (W)",
               "grid_max": "Import réseau maximal (W, 0 = illimité)",
               "scan_interval": "Intervalle de calcul (s)",
-              "settle": "Délai de stabilisation (s)"
+              "settle": "Délai de stabilisation (s)",
+              "manual_grace": "Grâce après action manuelle (s, 0 = désactivé)"
             },
             "data_description": {
               "use_measured_grid": "Le budget devient l'export réellement constaté au compteur, au lieu d'un calcul solaire − consommation. Supprime les surestimations.",
@@ -61,7 +62,8 @@
               "hysteresis": "Tolérance avant de couper un appareil déjà allumé. Plus haut = coupures moins sensibles aux variations passagères.",
               "grid_max": "Import réseau maximal autorisé pendant un forçage heures creuses. 0 = aucune limite.",
               "scan_interval": "Fréquence de recalcul du budget. 10 s = réactif ; 20 à 30 s = lisse les transitoires (nuages, démarrages).",
-              "settle": "Délai après une commutation pendant lequel l'appareil n'est pas re-commandé, le temps que les mesures se stabilisent."
+              "settle": "Délai après une commutation pendant lequel l'appareil n'est pas re-commandé, le temps que les mesures se stabilisent.",
+              "manual_grace": "Durée pendant laquelle l'intégration ne touche plus à un appareil après une action manuelle (télécommande, thermostat, dashboard). 900 s = 15 min."
             }
           },
           "heures_creuses": {
@@ -169,7 +171,8 @@
               "hysteresis": "Hystérésis (W)",
               "grid_max": "Import réseau maximal (W, 0 = illimité)",
               "scan_interval": "Intervalle de calcul (s)",
-              "settle": "Délai de stabilisation (s)"
+              "settle": "Délai de stabilisation (s)",
+              "manual_grace": "Grâce après action manuelle (s, 0 = désactivé)"
             },
             "data_description": {
               "use_measured_grid": "Le budget devient l'export réellement constaté au compteur, au lieu d'un calcul solaire − consommation. Supprime les surestimations.",
@@ -177,7 +180,8 @@
               "hysteresis": "Tolérance avant de couper un appareil déjà allumé. Plus haut = coupures moins sensibles aux variations passagères.",
               "grid_max": "Import réseau maximal autorisé pendant un forçage heures creuses. 0 = aucune limite.",
               "scan_interval": "Fréquence de recalcul du budget. 10 s = réactif ; 20 à 30 s = lisse les transitoires (nuages, démarrages).",
-              "settle": "Délai après une commutation pendant lequel l'appareil n'est pas re-commandé, le temps que les mesures se stabilisent."
+              "settle": "Délai après une commutation pendant lequel l'appareil n'est pas re-commandé, le temps que les mesures se stabilisent.",
+              "manual_grace": "Durée pendant laquelle l'intégration ne touche plus à un appareil après une action manuelle (télécommande, thermostat, dashboard). 900 s = 15 min."
             }
           },
           "heures_creuses": {

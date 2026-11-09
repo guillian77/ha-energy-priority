@@ -41,6 +41,7 @@ from .const import (
     CONF_INTERVAL,
     CONF_KEY,
     CONF_LOAD,
+    CONF_MANUAL_GRACE,
     CONF_MARGIN,
     CONF_MIN_OFF,
     CONF_MIN_ON,
@@ -57,6 +58,7 @@ from .const import (
     DEFAULT_DEVICE_PRIORITY,
     DEFAULT_HC_VALUES,
     DEFAULT_HYSTERESIS,
+    DEFAULT_MANUAL_GRACE,
     DEFAULT_MARGIN,
     DEFAULT_MIN_OFF,
     DEFAULT_MIN_ON,
@@ -91,6 +93,8 @@ class RuntimeTracker:
     phase: DevicePhase = DevicePhase.UNKNOWN
     last_change: float = 0.0
     last_command: float = 0.0
+    last_command_wall: float = 0.0
+    manual_until: float = 0.0
 
     def update(self, phase: DevicePhase, now: float) -> None:
         if phase == self.phase:
@@ -279,6 +283,7 @@ class EnergyPriorityCoordinator(DataUpdateCoordinator[Plan]):
         for key, config in self.devices.items():
             tracker = self.trackers.setdefault(key, RuntimeTracker())
             phase, available = self._read_device(config.entity_id)
+            self._detecter_action_manuelle(tracker, phase, now)
             tracker.update(phase, now)
             tracker.prune(now)
             pairs.append(
@@ -291,6 +296,7 @@ class EnergyPriorityCoordinator(DataUpdateCoordinator[Plan]):
                         runtime_24h_s=tracker.runtime(now),
                         override=self.overrides.get(key, Override.AUTO),
                         available=available,
+                        grace_s=max(0.0, tracker.manual_until - now),
                     ),
                 )
             )
@@ -312,6 +318,23 @@ class EnergyPriorityCoordinator(DataUpdateCoordinator[Plan]):
 
         await self._save()
         return plan
+
+    def _detecter_action_manuelle(
+        self, tracker: RuntimeTracker, phase: DevicePhase, now: float
+    ) -> None:
+        """Une bascule non commandée par l'intégration ouvre une grâce manuelle."""
+        grace = float(self._cfg(CONF_MANUAL_GRACE, DEFAULT_MANUAL_GRACE))
+        if grace <= 0:
+            return
+        if phase == tracker.phase or tracker.phase == DevicePhase.UNKNOWN:
+            return
+        settle = float(self._cfg(CONF_SETTLE, DEFAULT_SETTLE))
+        if tracker.last_command_wall and now - tracker.last_command_wall <= settle + 5:
+            return
+        tracker.manual_until = now + grace
+        _LOGGER.debug(
+            "Action manuelle détectée (état %s), pilotage suspendu %s s", phase, int(grace)
+        )
 
     async def _apply(self, plan: Plan, now: float) -> None:
         settle = float(self._cfg(CONF_SETTLE, DEFAULT_SETTLE))
@@ -338,6 +361,7 @@ class EnergyPriorityCoordinator(DataUpdateCoordinator[Plan]):
                 domain, service, {ATTR_ENTITY_ID: config.entity_id}, blocking=False
             )
             tracker.last_command = time.monotonic()
+            tracker.last_command_wall = dt_util.utcnow().timestamp()
 
     # ---------------------------------------------------------------- persistance
     async def _save(self, force: bool = False) -> None:
@@ -350,6 +374,9 @@ class EnergyPriorityCoordinator(DataUpdateCoordinator[Plan]):
                 "enabled": self.enabled,
                 "overrides": {k: v.value for k, v in self.overrides.items()},
                 "segments": {k: t.dump() for k, t in self.trackers.items()},
+                "manual_until": {
+                    k: t.manual_until for k, t in self.trackers.items() if t.manual_until
+                },
             }
         )
 
@@ -369,6 +396,7 @@ class EnergyPriorityCoordinator(DataUpdateCoordinator[Plan]):
                     end = now
                 tracker.segments.append([start, end])
             tracker.prune(now)
+            tracker.manual_until = float((stored.get("manual_until") or {}).get(key, 0.0))
 
     async def async_shutdown(self) -> None:
         await self._save(force=True)

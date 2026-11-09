@@ -209,3 +209,19 @@ async def test_hc_quota_boost_end_to_end(hass: HomeAssistant) -> None:
     await hass.async_block_till_done()
     assert coordinator.hc_active() is False
     assert coordinator.plan.decisions["ballon"].turn_on is False
+
+
+async def test_manual_switch_on_pauses_control(hass: HomeAssistant, harness) -> None:
+    """Un allumage manuel ne doit pas être annulé par le contrôleur."""
+    entry, calls = harness
+    coordinator = entry.runtime_data
+
+    # le ballon n'a pas été commandé au démarrage : toute bascule est manuelle
+    hass.states.async_set("switch.ballon", "on")
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    plan = coordinator.plan
+    assert plan.decisions["ballon"].turn_on is True
+    assert "grâce manuelle" in plan.decisions["ballon"].reason
+    assert ("switch", "turn_off", "switch.ballon") not in calls

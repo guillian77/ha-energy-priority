@@ -5,7 +5,7 @@ from __future__ import annotations
 from homeassistant.const import Platform
 
 DOMAIN = "energy_priority"
-VERSION = "1.7.1"
+VERSION = "1.8.0"
 
 PLATFORMS: list[Platform] = [
     Platform.SWITCH,
@@ -36,6 +36,7 @@ CONF_INTERVAL = "scan_interval"
 CONF_HC_BOOST = "hc_boost"
 CONF_HC_IGNORE_MIN = "hc_ignore_min_times"
 CONF_SETTLE = "settle"
+CONF_MANUAL_GRACE = "manual_grace"
 CONF_DEVICES = "devices"
 
 CONF_KEY = "key"
@@ -51,6 +52,7 @@ CONF_HC_FALLBACK = "hc_fallback"
 DEFAULT_HC_VALUES = "HC"
 DEFAULT_SCAN_INTERVAL = 10
 DEFAULT_SETTLE = 30
+DEFAULT_MANUAL_GRACE = 900
 DEFAULT_MARGIN = 100
 DEFAULT_HYSTERESIS = 150
 DEFAULT_BATTERY_CAP = 5000
