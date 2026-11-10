@@ -182,6 +182,14 @@ const STYLE = `
     margin-top: 3px;
     display: flex; gap: 8px; flex-wrap: wrap;
   }
+  .why {
+    font-size: 10.5px;
+    line-height: 1.3;
+    color: var(--secondary-text-color);
+    opacity: .85;
+    margin-top: 4px;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
   .badge-mode {
     font-size: 10px; font-weight: 700; letter-spacing: .3px;
     padding: 1px 6px; border-radius: 6px;
@@ -216,6 +224,9 @@ const STYLE = `
     .source:last-child { grid-column: span 2; }
   }
 `;
+
+const esc = (t) =>
+  String(t ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 
 const fmt = (v, unit = "") => {
   if (v === null || v === undefined || Number.isNaN(Number(v))) return "—";
@@ -373,6 +384,7 @@ class EnergyPriorityCard extends HTMLElement {
         const quota = Number(d.quota_h) > 0
           ? `quota ${Number(d.marche_24h_h).toFixed(1)}/${Number(d.quota_h)} h`
           : "";
+        const raison = String(d.raison || "").trim();
         return `
           <div class="appareil ${d.etat ? "actif" : ""}" data-entite="${d.entite || ""}"
                role="button" tabindex="0" title="Configurer ${d.nom}">
@@ -381,6 +393,7 @@ class EnergyPriorityCard extends HTMLElement {
               <div class="nom">${d.nom} ${mode}</div>
               <div class="det"><span>${fmt(nominale, "W")} nominal</span>${quota ? `<span>· ${quota}</span>` : ""}</div>
               <div class="barre"><i style="width:${part}%"></i></div>
+              ${raison ? `<div class="why" title="${esc(raison)}">${esc(raison)}</div>` : ""}
             </div>
             <div class="w">${accordee > 0 ? fmt(accordee, "W") : "0 W"}<small>${d.etat ? "accordée" : "en attente"}<span class="chev">›</span></small></div>
           </div>`;

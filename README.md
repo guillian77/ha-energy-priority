@@ -104,7 +104,11 @@ entity: sensor.energy_priority_repartition   # facultatif, détecté automatique
 
 Elle affiche, en temps réel : le total accordé face au budget, le solaire, la
 batterie (avec SOC) et le réseau, puis chaque appareil avec sa priorité, sa
-puissance accordée, sa barre de charge et son avancement de quota.
+puissance accordée, sa barre de charge, son avancement de quota et **le motif de la
+décision** (« grâce manuelle (12 min restantes) », « puissance insuffisante (457 W
+disponibles) », « forçage heures creuses, quota restant 0,3 h »…). Sans cette ligne,
+un appareil maintenu allumé hors budget (grâce manuelle, temps minimum de marche)
+semble incohérent avec les chiffres affichés.
 
 Navigation : le titre ouvre la page de l'intégration (options, réglages globaux,
 ajout/suppression d'appareils) ; un clic sur une ligne d'appareil ouvre sa page
