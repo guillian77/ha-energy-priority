@@ -9,6 +9,10 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from enum import Enum
 
+#: En dessous de ce flux de charge, la batterie est considérée comme au repos
+#: (bruit de mesure de l'onduleur). Au-dessus, elle charge réellement.
+CHARGE_DEADBAND_W = 50.0
+
 
 class Override(str, Enum):
     """Mode manuel d'un appareil."""
@@ -63,6 +67,8 @@ class Settings:
     allow_battery_discharge: bool = True
     battery_use_cap: bool = False
     battery_soc_min: float = 20.0
+    battery_reserve_soc: float = 0.0  # 0 = réserve désactivée
+    battery_no_budget_when_charging: bool = True
     margin_w: float = 100.0
     hysteresis_w: float = 150.0
     grid_max_w: float | None = None
@@ -126,20 +132,31 @@ def battery_w_signed(inputs: Inputs, settings: Settings) -> float:
 
 
 def battery_discharge_w(inputs: Inputs, settings: Settings) -> float:
-    """Puissance de décharge batterie utilisable (>= 0)."""
+    """Puissance de décharge batterie utilisable (>= 0).
+
+    Deux garde-fous s'ajoutent au plafond :
+    - une batterie en cours de charge ne peut rien alimenter : compter son
+      plafond reviendrait à promettre une puissance inexistante. C'est le cas
+      typique de la recharge en heures creuses, où il ne faut surtout pas
+      consommer la réserve fraîchement constituée ;
+    - ``battery_reserve_soc`` conserve un niveau de charge au-dessus du plancher
+      de sécurité de l'onduleur.
+    """
     if not settings.allow_battery_discharge:
         return 0.0
-    if inputs.battery_soc is None or inputs.battery_soc < settings.battery_soc_min:
+    soc_floor = max(settings.battery_soc_min, settings.battery_reserve_soc)
+    if inputs.battery_soc is None or inputs.battery_soc < soc_floor:
+        return 0.0
+    signed = battery_w_signed(inputs, settings)
+    if settings.battery_no_budget_when_charging and signed < -CHARGE_DEADBAND_W:
         return 0.0
     if settings.battery_use_cap:
         # Appoint restant sous le plafond : la décharge déjà en cours compte.
-        measured = max(0.0, battery_w_signed(inputs, settings))
+        measured = max(0.0, signed)
         return max(0.0, settings.battery_discharge_cap_w - measured)
     if inputs.battery_w is None:
         return 0.0
-    discharge = (
-        -inputs.battery_w if settings.battery_charge_positive else inputs.battery_w
-    )
+    discharge = signed
     return max(0.0, min(settings.battery_discharge_cap_w, discharge))
 
 

@@ -133,6 +133,51 @@ async def test_battery_soc_floor_blocks_discharge(hass: HomeAssistant, harness) 
     assert coordinator.plan.decisions["ballon"].turn_on is False
 
 
+async def test_battery_charging_does_not_count_as_power(hass: HomeAssistant, harness) -> None:
+    """Recharge en heures creuses : la batterie ne doit rien alimenter.
+
+    Reproduit le cas réel : plafond 5000 W, batterie en pleine charge, aucun
+    solaire. Avant correctif, le budget valait le plafond entier et les
+    appareils démarraient sur la réserve fraîchement constituée.
+    """
+    entry, calls = harness
+    hass.states.async_set("sensor.solar", "0")
+    hass.states.async_set("sensor.load", "1000")
+    hass.states.async_set("sensor.battery", "1200")  # > 0 = charge
+    hass.states.async_set("sensor.soc", "85")
+    hass.config_entries.async_update_entry(
+        entry, options={**entry.options, "battery_use_cap": True}
+    )
+    await hass.async_block_till_done()
+    coordinator = entry.runtime_data
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    assert coordinator.plan.budget.battery_discharge_w == 0
+    assert coordinator.plan.budget.available_w < 0
+    assert coordinator.plan.decisions["ballon"].turn_on is False
+    assert ("switch", "turn_on", "switch.ballon") not in calls
+
+
+async def test_battery_reserve_soc_keeps_headroom(hass: HomeAssistant, harness) -> None:
+    """Une réserve de 60 % bloque la sollicitation à 45 % de SOC."""
+    entry, _ = harness
+    hass.states.async_set("sensor.solar", "0")
+    hass.states.async_set("sensor.battery", "-800")
+    hass.states.async_set("sensor.soc", "45")
+    hass.config_entries.async_update_entry(
+        entry, options={**entry.options, "battery_reserve_soc": 60}
+    )
+    await hass.async_block_till_done()
+    coordinator = entry.runtime_data
+    await coordinator.async_refresh()
+    assert coordinator.plan.budget.battery_discharge_w == 0
+
+    hass.states.async_set("sensor.soc", "75")
+    await coordinator.async_refresh()
+    assert coordinator.plan.budget.battery_discharge_w == 800
+
+
 async def test_control_switch_suspends(hass: HomeAssistant, harness) -> None:
     entry, calls = harness
     coordinator = entry.runtime_data

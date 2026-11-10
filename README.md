@@ -133,9 +133,15 @@ d'appareil, où la priorité, le quota et le mode se modifient directement.
   la charge de base est reconstituée en retirant leur puissance nominale.
 - Si la puissance solaire ou la consommation globale devient indisponible, le
   comportement par défaut est de tout couper (`fail_safe_all_off`). Désactivable.
-- La décharge batterie n'est jamais autorisée sous le seuil de SOC configuré.
+- La décharge batterie n'est jamais autorisée sous le seuil de SOC configuré, ni
+  sous la « réserve à préserver » (`battery_reserve_soc`) quand elle est renseignée.
+- **Une batterie en cours de charge n'est jamais comptée dans le budget.** Compter son
+  plafond reviendrait à promettre une puissance qui n'existe pas : c'est le cas typique
+  de la recharge en heures creuses, où cette erreur faisait tourner les appareils sur la
+  réserve fraîchement constituée. Décocher « ne pas compter la batterie pendant sa
+  charge » restaure l'ancien comportement, réservé aux onduleurs qui basculent
+  instantanément de la charge à la décharge.
 - Par défaut, seule la décharge réellement mesurée entre dans le budget. L'option
   « la batterie peut fournir sa puissance maximale à la demande » utilise à la place
-  le plafond de décharge configuré (utile quand la batterie recharge mais peut
-  délivrer un appoint immédiat).
+  le plafond de décharge configuré.
 - Aucune action n'est envoyée à un appareil dont l'entité est `unavailable`.

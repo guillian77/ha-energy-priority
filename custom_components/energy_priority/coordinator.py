@@ -27,6 +27,8 @@ from .const import (
     CONF_BATTERY_SIGN,
     CONF_BATTERY_SOC,
     CONF_BATTERY_SOC_MIN,
+    CONF_BATTERY_RESERVE_SOC,
+    CONF_BATTERY_NO_CHARGE_BUDGET,
     CONF_BATTERY_USE_CAP,
     CONF_DEVICES,
     CONF_ENTITY,
@@ -55,6 +57,8 @@ from .const import (
     CONF_USE_GRID,
     DEFAULT_BATTERY_CAP,
     DEFAULT_BATTERY_SOC_MIN,
+    DEFAULT_BATTERY_RESERVE_SOC,
+    DEFAULT_BATTERY_NO_CHARGE_BUDGET,
     DEFAULT_DEVICE_PRIORITY,
     DEFAULT_HC_VALUES,
     DEFAULT_HYSTERESIS,
@@ -170,6 +174,12 @@ class EnergyPriorityCoordinator(DataUpdateCoordinator[Plan]):
             allow_battery_discharge=bool(self._cfg(CONF_ALLOW_DISCHARGE, True)),
             battery_use_cap=bool(self._cfg(CONF_BATTERY_USE_CAP, False)),
             battery_soc_min=float(self._cfg(CONF_BATTERY_SOC_MIN, DEFAULT_BATTERY_SOC_MIN)),
+            battery_reserve_soc=float(
+                self._cfg(CONF_BATTERY_RESERVE_SOC, DEFAULT_BATTERY_RESERVE_SOC)
+            ),
+            battery_no_budget_when_charging=bool(
+                self._cfg(CONF_BATTERY_NO_CHARGE_BUDGET, DEFAULT_BATTERY_NO_CHARGE_BUDGET)
+            ),
             margin_w=float(self._cfg(CONF_MARGIN, DEFAULT_MARGIN)),
             hysteresis_w=float(self._cfg(CONF_HYSTERESIS, DEFAULT_HYSTERESIS)),
             grid_max_w=float(grid_max) if grid_max else None,

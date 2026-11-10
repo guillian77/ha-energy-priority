@@ -15,7 +15,9 @@ from homeassistant.util import slugify
 from .const import (
     CONF_ALLOW_DISCHARGE,
     CONF_BATTERY_CAP,
+    CONF_BATTERY_NO_CHARGE_BUDGET,
     CONF_BATTERY_POWER,
+    CONF_BATTERY_RESERVE_SOC,
     CONF_BATTERY_SIGN,
     CONF_BATTERY_SOC,
     CONF_BATTERY_SOC_MIN,
@@ -46,6 +48,8 @@ from .const import (
     CONF_TARIFF,
     CONF_USE_GRID,
     DEFAULT_BATTERY_CAP,
+    DEFAULT_BATTERY_NO_CHARGE_BUDGET,
+    DEFAULT_BATTERY_RESERVE_SOC,
     DEFAULT_BATTERY_SOC_MIN,
     DEFAULT_DEVICE_PRIORITY,
     DEFAULT_HC_VALUES,
@@ -132,6 +136,26 @@ def _settings_schema(defaults: dict[str, Any]) -> vol.Schema:
                         mode=selector.NumberSelectorMode.SLIDER,
                     )
                 ),
+                vol.Optional(
+                    CONF_BATTERY_RESERVE_SOC,
+                    default=defaults.get(
+                        CONF_BATTERY_RESERVE_SOC, DEFAULT_BATTERY_RESERVE_SOC
+                    ),
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=0,
+                        max=100,
+                        step=1,
+                        unit_of_measurement="%",
+                        mode=selector.NumberSelectorMode.SLIDER,
+                    )
+                ),
+                vol.Optional(
+                    CONF_BATTERY_NO_CHARGE_BUDGET,
+                    default=defaults.get(
+                        CONF_BATTERY_NO_CHARGE_BUDGET, DEFAULT_BATTERY_NO_CHARGE_BUDGET
+                    ),
+                ): bool,
             }
         )
 

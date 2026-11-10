@@ -100,14 +100,24 @@ class BudgetTests(unittest.TestCase):
         self.assertEqual(b2.available_w, 73)
 
     def test_measured_grid_adds_battery_appoint(self):
-        # batterie en charge, mais capable de fournir 1200 W a la demande
+        # batterie en legere decharge : l'appoint restant sous le plafond compte
+        settings = Settings(margin_w=100, use_measured_grid=True, battery_use_cap=True,
+                            battery_discharge_cap_w=1200)
+        inputs = Inputs(solar_w=1880, load_w=2280, battery_w=-300, battery_soc=34,
+                        grid_w=-450)  # 450 W exportes, 300 W deja pris sur la batterie
+        budget = compute_budget(inputs, settings, on_power_w=0)
+        self.assertEqual(budget.battery_discharge_w, 900)
+        self.assertEqual(budget.available_w, 1250)
+
+    def test_measured_grid_ignores_appoint_while_charging(self):
+        # memes valeurs, mais la batterie charge : aucun appoint disponible
         settings = Settings(margin_w=100, use_measured_grid=True, battery_use_cap=True,
                             battery_discharge_cap_w=1200)
         inputs = Inputs(solar_w=1880, load_w=2280, battery_w=947, battery_soc=34,
-                        grid_w=-450)  # 450 W exportes
+                        grid_w=-450)
         budget = compute_budget(inputs, settings, on_power_w=0)
-        self.assertEqual(budget.battery_discharge_w, 1200)
-        self.assertEqual(budget.available_w, 1550)
+        self.assertEqual(budget.battery_discharge_w, 0)
+        self.assertEqual(budget.available_w, 350)
 
     def test_measured_grid_budget_when_exporting(self):
         settings = Settings(margin_w=100, use_measured_grid=True)
@@ -120,11 +130,50 @@ class BudgetTests(unittest.TestCase):
         inputs = Inputs(solar_w=0, load_w=0, battery_w=-2000, battery_soc=25)
         self.assertEqual(compute_budget(inputs, settings, 0).battery_discharge_w, 0)
 
-    def test_use_cap_allows_max_while_charging(self):
-        # batterie en charge mais capable de fournir 1200 W a la demande
+    def test_use_cap_blocks_budget_while_charging(self):
+        # batterie en charge : elle ne peut rien alimenter, meme avec use_cap
         settings = Settings(margin_w=0, battery_use_cap=True, battery_discharge_cap_w=1200)
         inputs = Inputs(solar_w=0, load_w=0, battery_w=949, battery_soc=34)
+        self.assertEqual(compute_budget(inputs, settings, 0).battery_discharge_w, 0)
+
+    def test_use_cap_allows_max_while_charging_when_option_disabled(self):
+        # comportement historique, conservé pour les onduleurs qui basculent
+        # instantanément de la charge à la décharge
+        settings = Settings(
+            margin_w=0,
+            battery_use_cap=True,
+            battery_discharge_cap_w=1200,
+            battery_no_budget_when_charging=False,
+        )
+        inputs = Inputs(solar_w=0, load_w=0, battery_w=949, battery_soc=34)
         self.assertEqual(compute_budget(inputs, settings, 0).battery_discharge_w, 1200)
+
+    def test_battery_near_zero_flow_still_counts(self):
+        # entre -50 W et +50 W : batterie au repos, pas une charge
+        settings = Settings(margin_w=0, battery_use_cap=True, battery_discharge_cap_w=1200)
+        inputs = Inputs(solar_w=0, load_w=0, battery_w=30, battery_soc=80)
+        self.assertEqual(compute_budget(inputs, settings, 0).battery_discharge_w, 1200)
+
+    def test_battery_reserve_soc_blocks_budget(self):
+        # soc 45 % au-dessus du plancher onduleur (20 %) mais sous la réserve (60 %)
+        settings = Settings(margin_w=0, battery_soc_min=20, battery_reserve_soc=60)
+        inputs = Inputs(solar_w=0, load_w=0, battery_w=-800, battery_soc=45)
+        self.assertEqual(compute_budget(inputs, settings, 0).battery_discharge_w, 0)
+
+    def test_battery_reserve_soc_allows_budget_above(self):
+        settings = Settings(margin_w=0, battery_soc_min=20, battery_reserve_soc=60)
+        inputs = Inputs(solar_w=0, load_w=0, battery_w=-800, battery_soc=75)
+        self.assertEqual(compute_budget(inputs, settings, 0).battery_discharge_w, 800)
+
+    def test_battery_reserve_soc_disabled_by_default(self):
+        settings = Settings(margin_w=0, battery_soc_min=20)
+        inputs = Inputs(solar_w=0, load_w=0, battery_w=-800, battery_soc=25)
+        self.assertEqual(compute_budget(inputs, settings, 0).battery_discharge_w, 800)
+
+    def test_battery_reserve_soc_never_below_soc_min(self):
+        settings = Settings(margin_w=0, battery_soc_min=40, battery_reserve_soc=10)
+        inputs = Inputs(solar_w=0, load_w=0, battery_w=-800, battery_soc=30)
+        self.assertEqual(compute_budget(inputs, settings, 0).battery_discharge_w, 0)
 
     def test_use_cap_respects_soc_floor(self):
         settings = Settings(margin_w=0, battery_use_cap=True, battery_soc_min=20)

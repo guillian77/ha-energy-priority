@@ -55,6 +55,8 @@ FORM_INPUT = {
         "battery_use_cap": False,
         "battery_discharge_cap": 5000,
         "battery_soc_min": 20,
+        "battery_reserve_soc": 60,
+        "battery_no_budget_when_charging": True,
     },
     "budget": {
         "use_measured_grid": False,
@@ -134,3 +136,27 @@ async def test_options_settings_sections_are_flattened(hass: HomeAssistant) -> N
     assert entry.options["hysteresis"] == 300
     assert entry.options["margin"] == 50
     assert "budget" not in entry.options
+    assert entry.options["battery_reserve_soc"] == 60
+    assert entry.options["battery_no_budget_when_charging"] is True
+
+
+async def test_battery_guard_defaults_when_omitted(hass: HomeAssistant) -> None:
+    """Sans saisie, la réserve reste désactivée et la charge n'est pas comptée."""
+    entry = MockConfigEntry(domain=DOMAIN, data=USER_INPUT, options={CONF_DEVICES: {}})
+    entry.add_to_hass(hass)
+    hass.states.async_set("sensor.solar", "1000")
+    hass.states.async_set("sensor.load", "0")
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    result = await hass.config_entries.options.async_init(entry.entry_id)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"next_step_id": "settings"}
+    )
+    partiel = {k: dict(v) for k, v in FORM_INPUT.items()}
+    partiel["batterie"].pop("battery_reserve_soc")
+    partiel["batterie"].pop("battery_no_budget_when_charging")
+    result = await hass.config_entries.options.async_configure(result["flow_id"], partiel)
+    assert result["type"] == FlowResultType.CREATE_ENTRY
+    assert entry.options["battery_reserve_soc"] == 0
+    assert entry.options["battery_no_budget_when_charging"] is True

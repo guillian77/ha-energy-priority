@@ -5,7 +5,7 @@ from __future__ import annotations
 from homeassistant.const import Platform
 
 DOMAIN = "energy_priority"
-VERSION = "1.8.1"
+VERSION = "1.8.2"
 
 PLATFORMS: list[Platform] = [
     Platform.SWITCH,
@@ -28,6 +28,8 @@ CONF_BATTERY_CAP = "battery_discharge_cap"
 CONF_BATTERY_SOC_MIN = "battery_soc_min"
 CONF_ALLOW_DISCHARGE = "allow_battery_discharge"
 CONF_BATTERY_USE_CAP = "battery_use_cap"
+CONF_BATTERY_RESERVE_SOC = "battery_reserve_soc"
+CONF_BATTERY_NO_CHARGE_BUDGET = "battery_no_budget_when_charging"
 CONF_MARGIN = "margin"
 CONF_HYSTERESIS = "hysteresis"
 CONF_GRID_MAX = "grid_max"
@@ -57,6 +59,8 @@ DEFAULT_MARGIN = 100
 DEFAULT_HYSTERESIS = 150
 DEFAULT_BATTERY_CAP = 5000
 DEFAULT_BATTERY_SOC_MIN = 20
+DEFAULT_BATTERY_RESERVE_SOC = 0  # 0 = réserve désactivée
+DEFAULT_BATTERY_NO_CHARGE_BUDGET = True
 DEFAULT_DEVICE_PRIORITY = 10
 DEFAULT_MIN_ON = 60
 DEFAULT_MIN_OFF = 60
