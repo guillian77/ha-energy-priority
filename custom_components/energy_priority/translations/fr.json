@@ -35,8 +35,7 @@
               "allow_battery_discharge": "Autoriser la décharge batterie",
               "battery_use_cap": "Compter la batterie pour son plafond de décharge",
               "battery_discharge_cap": "Décharge batterie maximale (W)",
-              "battery_soc_min": "Batterie : seuil minimal (%)",
-              "battery_reserve_soc": "Batterie : réserve à préserver (%)",
+              "battery_soc_min": "Batterie : seuil à ne pas franchir (%)",
               "battery_no_budget_when_charging": "Ne pas compter la batterie pendant sa charge"
             },
             "data_description": {
@@ -44,8 +43,7 @@
               "allow_battery_discharge": "Autorise le contrôleur à compter sur la batterie pour alimenter les appareils.",
               "battery_use_cap": "Quand la batterie débite, son apport est calculé au plafond « décharge batterie maximale » moins ce qu'elle fournit déjà. Exemple : plafond 1200 W, 300 W déjà débités, il reste 900 W pour les appareils. Décoché : seule la décharge réellement mesurée compte.",
               "battery_discharge_cap": "Puissance réelle que la batterie peut fournir en pointe, pas la valeur de la fiche technique. Trop haute = import réseau.",
-              "battery_soc_min": "Plancher de sécurité de la batterie : en dessous, elle n'est plus sollicitée du tout.",
-              "battery_reserve_soc": "Niveau à conserver pour la maison. En dessous, la batterie n'est plus comptée dans le budget : seuls le solaire et le réseau peuvent alimenter les appareils pilotés. Le reste de la maison continue de l'utiliser normalement. 0 = désactivé.",
+              "battery_soc_min": "En dessous de ce niveau, la batterie n'est plus comptée dans le budget : seuls le solaire et le réseau peuvent alimenter les appareils pilotés. Le reste de la maison continue de l'utiliser normalement, l'onduleur n'est pas bridé.",
               "battery_no_budget_when_charging": "S'applique quoi qu'il arrive, y compris avec l'option du dessus : tant que la batterie charge, elle ne fournit rien et n'entre pas dans le budget. À décocher uniquement si l'onduleur bascule instantanément de la charge à la décharge."
             }
           },
@@ -157,8 +155,7 @@
               "allow_battery_discharge": "Autoriser la décharge batterie",
               "battery_use_cap": "Compter la batterie pour son plafond de décharge",
               "battery_discharge_cap": "Décharge batterie maximale (W)",
-              "battery_soc_min": "Batterie : seuil minimal (%)",
-              "battery_reserve_soc": "Batterie : réserve à préserver (%)",
+              "battery_soc_min": "Batterie : seuil à ne pas franchir (%)",
               "battery_no_budget_when_charging": "Ne pas compter la batterie pendant sa charge"
             },
             "data_description": {
@@ -166,8 +163,7 @@
               "allow_battery_discharge": "Autorise le contrôleur à compter sur la batterie pour alimenter les appareils.",
               "battery_use_cap": "Quand la batterie débite, son apport est calculé au plafond « décharge batterie maximale » moins ce qu'elle fournit déjà. Exemple : plafond 1200 W, 300 W déjà débités, il reste 900 W pour les appareils. Décoché : seule la décharge réellement mesurée compte.",
               "battery_discharge_cap": "Puissance réelle que la batterie peut fournir en pointe, pas la valeur de la fiche technique. Trop haute = import réseau.",
-              "battery_soc_min": "Plancher de sécurité de la batterie : en dessous, elle n'est plus sollicitée du tout.",
-              "battery_reserve_soc": "Niveau à conserver pour la maison. En dessous, la batterie n'est plus comptée dans le budget : seuls le solaire et le réseau peuvent alimenter les appareils pilotés. Le reste de la maison continue de l'utiliser normalement. 0 = désactivé.",
+              "battery_soc_min": "En dessous de ce niveau, la batterie n'est plus comptée dans le budget : seuls le solaire et le réseau peuvent alimenter les appareils pilotés. Le reste de la maison continue de l'utiliser normalement, l'onduleur n'est pas bridé.",
               "battery_no_budget_when_charging": "S'applique quoi qu'il arrive, y compris avec l'option du dessus : tant que la batterie charge, elle ne fournit rien et n'entre pas dans le budget. À décocher uniquement si l'onduleur bascule instantanément de la charge à la décharge."
             }
           },

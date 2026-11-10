@@ -49,7 +49,6 @@ from .const import (
     CONF_USE_GRID,
     DEFAULT_BATTERY_CAP,
     DEFAULT_BATTERY_NO_CHARGE_BUDGET,
-    DEFAULT_BATTERY_RESERVE_SOC,
     DEFAULT_BATTERY_SOC_MIN,
     DEFAULT_DEVICE_PRIORITY,
     DEFAULT_HC_VALUES,
@@ -142,20 +141,6 @@ def _settings_schema(defaults: dict[str, Any]) -> vol.Schema:
                         mode=selector.NumberSelectorMode.SLIDER,
                     )
                 ),
-                vol.Optional(
-                    CONF_BATTERY_RESERVE_SOC,
-                    default=defaults.get(
-                        CONF_BATTERY_RESERVE_SOC, DEFAULT_BATTERY_RESERVE_SOC
-                    ),
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=0,
-                        max=100,
-                        step=1,
-                        unit_of_measurement="%",
-                        mode=selector.NumberSelectorMode.SLIDER,
-                    )
-                ),
             }
         )
 
@@ -237,6 +222,21 @@ def _flatten(user_input: dict[str, Any]) -> dict[str, Any]:
         else:
             plat[cle] = valeur
     return plat
+
+
+def _migrer_reserve(options: dict[str, Any]) -> dict[str, Any]:
+    """Replie « réserve à préserver » (1.8.2) dans le seuil minimal.
+
+    Les deux réglages faisaient le même test, donc le même effet. On conserve
+    la valeur la plus protectrice avant de supprimer la clé obsolète, sinon un
+    utilisateur ayant réglé 80 % se retrouverait à 20 % sans le savoir.
+    """
+    reserve = options.pop(CONF_BATTERY_RESERVE_SOC, None)
+    if reserve:
+        seuil = options.get(CONF_BATTERY_SOC_MIN)
+        if seuil is None or float(seuil) < float(reserve):
+            options[CONF_BATTERY_SOC_MIN] = float(reserve)
+    return options
 
 
 def _device_schema(
@@ -353,6 +353,7 @@ class EnergyPriorityOptionsFlow(OptionsFlow):
         if user_input is not None:
             options = dict(self.config_entry.options)
             options.update(_flatten(user_input))
+            _migrer_reserve(options)
             return self.async_create_entry(title="", data=options)
         defaults = dict(self.config_entry.data)
         defaults.update(self.config_entry.options)

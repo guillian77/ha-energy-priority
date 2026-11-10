@@ -154,23 +154,23 @@ class BudgetTests(unittest.TestCase):
         inputs = Inputs(solar_w=0, load_w=0, battery_w=30, battery_soc=80)
         self.assertEqual(compute_budget(inputs, settings, 0).battery_discharge_w, 1200)
 
-    def test_battery_reserve_soc_blocks_budget(self):
-        # soc 45 % au-dessus du plancher onduleur (20 %) mais sous la réserve (60 %)
+    def test_legacy_reserve_key_blocks_budget(self):
+        # clé obsolète : elle se comporte comme le seuil minimal (migration 1.8.5)
         settings = Settings(margin_w=0, battery_soc_min=20, battery_reserve_soc=60)
         inputs = Inputs(solar_w=0, load_w=0, battery_w=-800, battery_soc=45)
         self.assertEqual(compute_budget(inputs, settings, 0).battery_discharge_w, 0)
 
-    def test_battery_reserve_soc_allows_budget_above(self):
+    def test_legacy_reserve_key_allows_budget_above(self):
         settings = Settings(margin_w=0, battery_soc_min=20, battery_reserve_soc=60)
         inputs = Inputs(solar_w=0, load_w=0, battery_w=-800, battery_soc=75)
         self.assertEqual(compute_budget(inputs, settings, 0).battery_discharge_w, 800)
 
-    def test_battery_reserve_soc_disabled_by_default(self):
+    def test_legacy_reserve_key_disabled_by_default(self):
         settings = Settings(margin_w=0, battery_soc_min=20)
         inputs = Inputs(solar_w=0, load_w=0, battery_w=-800, battery_soc=25)
         self.assertEqual(compute_budget(inputs, settings, 0).battery_discharge_w, 800)
 
-    def test_battery_reserve_soc_never_below_soc_min(self):
+    def test_legacy_reserve_never_lowers_soc_min(self):
         settings = Settings(margin_w=0, battery_soc_min=40, battery_reserve_soc=10)
         inputs = Inputs(solar_w=0, load_w=0, battery_w=-800, battery_soc=30)
         self.assertEqual(compute_budget(inputs, settings, 0).battery_discharge_w, 0)

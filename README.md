@@ -133,8 +133,9 @@ d'appareil, où la priorité, le quota et le mode se modifient directement.
   la charge de base est reconstituée en retirant leur puissance nominale.
 - Si la puissance solaire ou la consommation globale devient indisponible, le
   comportement par défaut est de tout couper (`fail_safe_all_off`). Désactivable.
-- La décharge batterie n'est jamais autorisée sous le seuil de SOC configuré, ni
-  sous la « réserve à préserver » (`battery_reserve_soc`) quand elle est renseignée.
+- La décharge batterie n'est jamais autorisée sous le seuil minimal de SOC : en
+  dessous, la batterie sort du budget et seuls le solaire et le réseau alimentent
+  les appareils pilotés (le reste de la maison continue de l'utiliser).
 - **Une batterie en cours de charge n'est jamais comptée dans le budget.** Compter son
   plafond reviendrait à promettre une puissance qui n'existe pas : c'est le cas typique
   de la recharge en heures creuses, où cette erreur faisait tourner les appareils sur la

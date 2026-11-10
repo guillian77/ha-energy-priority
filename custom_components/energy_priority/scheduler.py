@@ -67,7 +67,7 @@ class Settings:
     allow_battery_discharge: bool = True
     battery_use_cap: bool = False
     battery_soc_min: float = 20.0
-    battery_reserve_soc: float = 0.0  # 0 = réserve désactivée
+    battery_reserve_soc: float = 0.0  # obsolète : replié dans battery_soc_min (1.8.5)
     battery_no_budget_when_charging: bool = True
     margin_w: float = 100.0
     hysteresis_w: float = 150.0
