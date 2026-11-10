@@ -160,3 +160,22 @@ async def test_battery_guard_defaults_when_omitted(hass: HomeAssistant) -> None:
     assert result["type"] == FlowResultType.CREATE_ENTRY
     assert entry.options["battery_reserve_soc"] == 0
     assert entry.options["battery_no_budget_when_charging"] is True
+
+
+def test_battery_section_order_keeps_guards_together() -> None:
+    """L'ordre du formulaire Batterie : les deux garde-fous côte à côte.
+
+    « Compter la batterie pour son plafond » et « Ne pas compter pendant la
+    charge » se lisent ensemble : le second suit immédiatement le premier.
+    """
+    from custom_components.energy_priority.config_flow import _settings_schema
+
+    section_batterie = _settings_schema({}).schema["batterie"]
+    ordre = list(section_batterie.schema.schema)
+    assert ordre[:5] == [
+        "battery_charge_positive",
+        "allow_battery_discharge",
+        "battery_use_cap",
+        "battery_no_budget_when_charging",
+        "battery_discharge_cap",
+    ]

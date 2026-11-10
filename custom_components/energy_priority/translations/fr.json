@@ -42,11 +42,11 @@
             "data_description": {
               "battery_charge_positive": "À cocher si ton capteur est positif quand la batterie CHARGE. Dans le doute : regarde la valeur pendant une charge.",
               "allow_battery_discharge": "Autorise le contrôleur à compter sur la batterie pour alimenter les appareils.",
-              "battery_use_cap": "Le budget retient le plafond de décharge configuré, moins ce que la batterie débite déjà, au lieu de la seule décharge mesurée. Ne s'applique qu'en décharge : pendant une charge, la batterie n'est jamais comptée (voir l'option ci-dessus). À décocher si l'onduleur ne suit pas la demande.",
+              "battery_use_cap": "Quand la batterie débite, son apport est calculé au plafond « décharge batterie maximale » moins ce qu'elle fournit déjà. Exemple : plafond 1200 W, 300 W déjà débités, il reste 900 W pour les appareils. Décoché : seule la décharge réellement mesurée compte.",
               "battery_discharge_cap": "Puissance réelle que la batterie peut fournir en pointe, pas la valeur de la fiche technique. Trop haute = import réseau.",
-              "battery_soc_min": "Plancher de sécurité : en dessous, la batterie n'est plus sollicitée.",
-              "battery_reserve_soc": "Réserve gardée pour la maison. Au-dessus de ce niveau, la batterie est comptée comme puissance disponible pour les appareils pilotés ; en dessous, elle ne l'est plus : seuls le solaire et le réseau peuvent les alimenter. Elle ne bride pas la batterie pour le reste de la maison, elle la retire seulement du budget des appareils pilotés. 0 = désactivé. Doit rester au-dessus du seuil minimal.",
-              "battery_no_budget_when_charging": "Quand la batterie charge (recharge heures creuses, excédent solaire), elle ne peut rien alimenter : son plafond n'est pas compté dans la puissance disponible. À décocher seulement si l'onduleur bascule instantanément de la charge à la décharge."
+              "battery_soc_min": "Plancher de sécurité de la batterie : en dessous, elle n'est plus sollicitée du tout.",
+              "battery_reserve_soc": "Niveau à conserver pour la maison. En dessous, la batterie n'est plus comptée dans le budget : seuls le solaire et le réseau peuvent alimenter les appareils pilotés. Le reste de la maison continue de l'utiliser normalement. 0 = désactivé.",
+              "battery_no_budget_when_charging": "S'applique quoi qu'il arrive, y compris avec l'option du dessus : tant que la batterie charge, elle ne fournit rien et n'entre pas dans le budget. À décocher uniquement si l'onduleur bascule instantanément de la charge à la décharge."
             }
           },
           "budget": {
@@ -164,11 +164,11 @@
             "data_description": {
               "battery_charge_positive": "À cocher si ton capteur est positif quand la batterie CHARGE. Dans le doute : regarde la valeur pendant une charge.",
               "allow_battery_discharge": "Autorise le contrôleur à compter sur la batterie pour alimenter les appareils.",
-              "battery_use_cap": "Le budget retient le plafond de décharge configuré, moins ce que la batterie débite déjà, au lieu de la seule décharge mesurée. Ne s'applique qu'en décharge : pendant une charge, la batterie n'est jamais comptée (voir l'option ci-dessus). À décocher si l'onduleur ne suit pas la demande.",
+              "battery_use_cap": "Quand la batterie débite, son apport est calculé au plafond « décharge batterie maximale » moins ce qu'elle fournit déjà. Exemple : plafond 1200 W, 300 W déjà débités, il reste 900 W pour les appareils. Décoché : seule la décharge réellement mesurée compte.",
               "battery_discharge_cap": "Puissance réelle que la batterie peut fournir en pointe, pas la valeur de la fiche technique. Trop haute = import réseau.",
-              "battery_soc_min": "Plancher de sécurité : en dessous, la batterie n'est plus sollicitée.",
-              "battery_reserve_soc": "Réserve gardée pour la maison. Au-dessus de ce niveau, la batterie est comptée comme puissance disponible pour les appareils pilotés ; en dessous, elle ne l'est plus : seuls le solaire et le réseau peuvent les alimenter. Elle ne bride pas la batterie pour le reste de la maison, elle la retire seulement du budget des appareils pilotés. 0 = désactivé. Doit rester au-dessus du seuil minimal.",
-              "battery_no_budget_when_charging": "Quand la batterie charge (recharge heures creuses, excédent solaire), elle ne peut rien alimenter : son plafond n'est pas compté dans la puissance disponible. À décocher seulement si l'onduleur bascule instantanément de la charge à la décharge."
+              "battery_soc_min": "Plancher de sécurité de la batterie : en dessous, elle n'est plus sollicitée du tout.",
+              "battery_reserve_soc": "Niveau à conserver pour la maison. En dessous, la batterie n'est plus comptée dans le budget : seuls le solaire et le réseau peuvent alimenter les appareils pilotés. Le reste de la maison continue de l'utiliser normalement. 0 = désactivé.",
+              "battery_no_budget_when_charging": "S'applique quoi qu'il arrive, y compris avec l'option du dessus : tant que la batterie charge, elle ne fournit rien et n'entre pas dans le budget. À décocher uniquement si l'onduleur bascule instantanément de la charge à la décharge."
             }
           },
           "budget": {

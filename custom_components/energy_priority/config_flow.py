@@ -122,6 +122,12 @@ def _settings_schema(defaults: dict[str, Any]) -> vol.Schema:
                     CONF_BATTERY_USE_CAP, default=defaults.get(CONF_BATTERY_USE_CAP, False)
                 ): bool,
                 vol.Optional(
+                    CONF_BATTERY_NO_CHARGE_BUDGET,
+                    default=defaults.get(
+                        CONF_BATTERY_NO_CHARGE_BUDGET, DEFAULT_BATTERY_NO_CHARGE_BUDGET
+                    ),
+                ): bool,
+                vol.Optional(
                     CONF_BATTERY_CAP, default=defaults.get(CONF_BATTERY_CAP, DEFAULT_BATTERY_CAP)
                 ): watts,
                 vol.Optional(
@@ -150,12 +156,6 @@ def _settings_schema(defaults: dict[str, Any]) -> vol.Schema:
                         mode=selector.NumberSelectorMode.SLIDER,
                     )
                 ),
-                vol.Optional(
-                    CONF_BATTERY_NO_CHARGE_BUDGET,
-                    default=defaults.get(
-                        CONF_BATTERY_NO_CHARGE_BUDGET, DEFAULT_BATTERY_NO_CHARGE_BUDGET
-                    ),
-                ): bool,
             }
         )
 
